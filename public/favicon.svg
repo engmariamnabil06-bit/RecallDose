@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Recalldose</title>
+  <defs>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#76B7FF"/>
+      <stop offset="1" stop-color="#2864D7"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="#0B1425"/>
+  <path d="M16 45V18h14c8 0 13 4 13 11 0 5-3 9-8 10l10 6H33l-8-6v6z" fill="url(#blue)"/>
+  <path d="M25 25h5c3 0 5 1 5 4s-2 4-5 4h-5z" fill="#0B1425"/>
+  <g transform="rotate(-38 43 22)">
+    <rect x="36" y="12" width="14" height="27" rx="7" fill="#EAF4FF" stroke="#2864D7" stroke-width="2"/>
+    <path d="M36 25.5h14" stroke="#2864D7" stroke-width="2"/>
+    <path d="M38 15.5a5 5 0 0 1 10 0v7H38z" fill="#76B7FF"/>
+  </g>
+</svg>

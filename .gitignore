@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Frontend / Vite build output
+dist/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Logs and local diagnostics
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db

@@ -1,0 +1,450 @@
+// use prisma-8
+
+enum UserRole {
+  STUDENT
+  ADMIN
+}
+
+model Faculty {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  code      String?   @unique
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  profiles  Profile[]
+  subjects  Subject[]
+
+  @@index([isActive])
+}
+
+model Subject {
+  id        String    @id @default(uuid())
+  facultyId String
+  name      String
+  code      String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt temporal.updatedAt()
+
+  faculty   Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+
+  @@unique([facultyId, name])
+  @@index([facultyId])
+  @@index([isActive])
+}
+
+model Topic {
+  id          String    @id @default(uuid())
+  subjectId   String
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   temporal.updatedAt()
+
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@unique([subjectId, name])
+  @@index([subjectId])
+  @@index([isActive])
+}
+
+model User {
+  id            String               @id @default(uuid())
+  email         String               @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          UserRole             @default(STUDENT)
+  emailVerified Boolean              @default(false)
+  isActive      Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  updatedAt     temporal.updatedAt()
+
+  profile       Profile?
+  sessions      Session[]
+  examAttempts  ExamAttempt[]
+  recallSessions RecallSession[]
+  mistakes      Mistake[]
+  progress      Progress[]
+  weakSpots     WeakSpot[]
+  dailyDoses    DailyDose[]
+  fileAccesses  FileAccess[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Profile {
+  id             String               @id @default(uuid())
+  userId         String               @unique
+  faculty        String?
+  facultyId      String?
+  university     String?
+  year           String?
+  specialization String?
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
+
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facultyRef     Faculty?             @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+
+  @@index([facultyId])
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum RecallSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum MistakeType {
+  WRONG_ANSWER
+  SKIPPED
+}
+
+model Question {
+  id          String               @id @default(uuid())
+  text        String
+  explanation String?
+  type        QuestionType         @default(SINGLE_CHOICE)
+  difficulty  Difficulty           @default(MEDIUM)
+  subject     String?
+  topic       String?
+  topicId     String?
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   temporal.updatedAt()
+
+  options              QuestionOption[]
+  answers              Answer[]
+  mistakes             Mistake[]
+  topicRef             Topic?               @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  recallSessionQuestions RecallSessionQuestion[]
+
+  @@index([subject])
+  @@index([topic])
+  @@index([topicId])
+  @@index([difficulty])
+  @@index([isActive])
+}
+
+model QuestionOption {
+  id          String   @id @default(uuid())
+  questionId  String
+  text        String
+  isCorrect   Boolean  @default(false)
+  optionOrder Int
+  createdAt   DateTime @default(now())
+
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model Exam {
+  id              String               @id @default(uuid())
+  title           String
+  description     String?
+  subject         String?
+  topic           String?
+  durationMinutes Int?
+  status          ExamStatus           @default(DRAFT)
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+
+  attempts        ExamAttempt[]
+}
+
+model ExamAttempt {
+  id             String        @id @default(uuid())
+  examId         String
+  userId         String
+  status         AttemptStatus @default(IN_PROGRESS)
+  score          Float?
+  totalQuestions Int?
+  correctAnswers Int           @default(0)
+  wrongAnswers   Int           @default(0)
+  skippedAnswers Int           @default(0)
+  startedAt      DateTime      @default(now())
+  completedAt    DateTime?
+
+  exam           Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers        Answer[]
+  mistakes       Mistake[]
+
+  @@index([examId])
+  @@index([userId])
+  @@index([userId, status])
+}
+
+model RecallSession {
+  id             String              @id @default(uuid())
+  userId         String
+  dailyDoseId    String?
+  status         RecallSessionStatus @default(IN_PROGRESS)
+  totalQuestions Int                 @default(0)
+  correctAnswers Int                 @default(0)
+  wrongAnswers   Int                 @default(0)
+  skippedAnswers Int                 @default(0)
+  startedAt      DateTime            @default(now())
+  completedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      temporal.updatedAt()
+
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyDose      DailyDose?           @relation(fields: [dailyDoseId], references: [id], onDelete: SetNull)
+  questions      RecallSessionQuestion[]
+  answers        Answer[]
+  mistakes       Mistake[]
+
+  @@index([userId])
+  @@index([dailyDoseId])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model RecallSessionQuestion {
+  id         String   @id @default(uuid())
+  sessionId  String
+  questionId String
+  order      Int
+  createdAt  DateTime @default(now())
+
+  session    RecallSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question   Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, questionId])
+  @@unique([sessionId, order])
+  @@index([sessionId])
+  @@index([questionId])
+}
+
+model Answer {
+  id               String        @id @default(uuid())
+  attemptId        String?
+  recallSessionId  String?
+  questionId       String
+  selectedOptionId String?
+  isCorrect        Boolean?
+  answeredAt       DateTime      @default(now())
+
+  attempt          ExamAttempt?  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  recallSession    RecallSession? @relation(fields: [recallSessionId], references: [id], onDelete: Cascade)
+  question         Question      @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+   @@index([attemptId])
+   @@index([recallSessionId])
+   @@index([questionId])
+   @@unique([recallSessionId, questionId])
+}
+
+model Mistake {
+  id              String               @id @default(uuid())
+  userId          String
+  questionId      String
+  attemptId       String?
+  recallSessionId String?
+  type            MistakeType          @default(WRONG_ANSWER)
+  selectedAnswer  String?
+  correctAnswer   String?
+  reviewCount     Int                  @default(0)
+  resolved        Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question        Question             @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attempt         ExamAttempt?         @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+  recallSession   RecallSession?       @relation(fields: [recallSessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([questionId])
+  @@index([attemptId])
+  @@index([recallSessionId])
+  @@index([userId, resolved])
+}
+
+model Progress {
+  id              String               @id @default(uuid())
+  userId          String
+  subject         String
+  topic           String?
+  questionsSeen   Int                  @default(0)
+  questionsSolved Int                  @default(0)
+  correctAnswers  Int                  @default(0)
+  wrongAnswers    Int                  @default(0)
+  accuracy        Float                @default(0)
+  studyTime       Int                  @default(0)
+  lastActivityAt  DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subject, topic])
+  @@index([userId])
+  @@index([userId, subject])
+}
+
+model WeakSpot {
+  id             String               @id @default(uuid())
+  userId         String
+  subject        String
+  topic          String
+  accuracy       Float                @default(0)
+  mistakeCount   Int                  @default(0)
+  priority       Int                  @default(0)
+  isResolved     Boolean              @default(false)
+  lastDetectedAt DateTime             @default(now())
+  resolvedAt     DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
+
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subject, topic])
+  @@index([userId])
+  @@index([userId, isResolved])
+  @@index([userId, priority])
+}
+
+enum DailyDoseType {
+  REVIEW_MISTAKES
+  PRACTICE_WEAK_SPOT
+  NEW_QUESTIONS
+  MOCK_EXAM
+  REVIEW_TOPIC
+}
+
+enum DailyDoseStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+model DailyDose {
+  id             String               @id @default(uuid())
+  userId         String
+  type           DailyDoseType
+  status         DailyDoseStatus      @default(PENDING)
+  title          String
+  description    String?
+  subject        String?
+  topic          String?
+  targetCount    Int?
+  completedCount Int                  @default(0)
+  scheduledDate  String
+  scheduledFor   DateTime
+  completedAt    DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      temporal.updatedAt()
+
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions       RecallSession[]
+
+  @@unique([userId, scheduledDate])
+  @@index([userId, scheduledFor])
+  @@index([userId, status])
+}
+
+enum FileStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  FAILED
+  DELETED
+}
+
+enum FileType {
+  PDF
+  DOCX
+  PPTX
+  TXT
+  OTHER
+}
+
+model File {
+  id              String               @id @default(uuid())
+  originalName    String
+  storageKey      String               @unique
+  mimeType        String
+  extension       String?
+  sizeBytes       BigInt
+  sha256          String               @unique
+  type            FileType
+  status          FileStatus           @default(UPLOADING)
+  processingError String?
+  uploadedAt      DateTime             @default(now())
+  processedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       temporal.updatedAt()
+
+  access          FileAccess[]
+
+  @@index([sha256])
+  @@index([status])
+}
+
+model FileAccess {
+  id             String    @id @default(uuid())
+  fileId         String
+  userId         String
+  createdAt      DateTime  @default(now())
+  lastAccessedAt DateTime?
+
+  file           File      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, userId])
+  @@index([userId])
+  @@index([fileId])
+}
+
+
+
