@@ -86,7 +86,7 @@ const StatCard = ({
       }`}
     >
       <div className="stat-icon">
-        <Icon size={25} strokeWidth={1.7} aria-hidden="true" />
+        <Icon size={25} strokeWidth={1.7} aria-hidden={true} />
       </div>
 
       <strong>
