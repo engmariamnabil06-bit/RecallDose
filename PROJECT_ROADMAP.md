@@ -61,3 +61,10 @@
 ## Verification note
 
 The environment used for this update did not complete `npm ci`, so a full `npm run build` has **not** been verified. TypeScript transpilation syntax checks passed for the new page and the modified app/dashboard files; dependency-aware typechecking and browser testing remain outstanding.
+
+
+## Review pass completed on the uploaded snapshot
+
+The review copy now has real protected pages for progress, weak spots, mistakes, profile, daily dose, and the rule-based Recall Twin summary. The missing dashboard routes have been connected, answer feedback identifies the actual correct option, and daily-dose recall can reopen at the first unanswered question. The API now uses the deployment-provided port and checks Origin on state-changing requests.
+
+Still not complete: secure password reset/email delivery, real day-streak history, exam-attempt backend, persisted Pharma Memory Lab ratings and spaced repetition, content authoring/import and source provenance, AI-provider integration, rate limiting, full CSRF review for any cross-site-cookie deployment, transaction-safe registration/answer updates, and comprehensive automated/browser tests. The build could not be verified in this environment because dependency installation timed out.

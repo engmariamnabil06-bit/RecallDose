@@ -12,6 +12,15 @@ async function buildSessionResponse(
   session: any,
   selectedQuestions: any[]
 ) {
+  const savedAnswers =
+    await db.orm.public.Answer
+      .where({ recallSessionId: session.id })
+      .all();
+
+  const answeredQuestionIds = new Set(
+    savedAnswers.map((answer) => answer.questionId)
+  );
+
   return {
     session: {
       id: session.id,
@@ -39,6 +48,7 @@ async function buildSessionResponse(
             difficulty: question.difficulty,
             subject: question.subject,
             topic: question.topic,
+            answered: answeredQuestionIds.has(question.id),
             options: options
               .sort(
                 (a, b) =>

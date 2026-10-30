@@ -16,6 +16,18 @@ export async function getDashboardData(userId: string) {
       .where({ userId })
       .all();
 
+  const activeWeakSpots =
+    await db.orm.public.WeakSpot
+      .where({ userId, isResolved: false })
+      .all();
+
+  const questionRecords =
+    await db.orm.public.Question.all();
+
+  const questionById = new Map(
+    questionRecords.map((question) => [question.id, question] as const)
+  );
+
   // =========================
   // BASIC STATS
   // =========================
@@ -63,6 +75,26 @@ export async function getDashboardData(userId: string) {
     .map((mistake) => ({
       id: mistake.id,
       questionId: mistake.questionId,
+      questionText: questionById.get(mistake.questionId)?.text ?? "Question no longer available",
+      explanation: questionById.get(mistake.questionId)?.explanation ?? null,
+      type: mistake.type,
+      selectedAnswer: mistake.selectedAnswer,
+      correctAnswer: mistake.correctAnswer,
+      reviewCount: mistake.reviewCount,
+      resolved: mistake.resolved,
+      createdAt: mistake.createdAt,
+    }));
+
+  const allMistakes = mistakes
+    .filter((mistake) => !mistake.resolved)
+    .sort((a, b) =>
+      String(b.createdAt).localeCompare(String(a.createdAt))
+    )
+    .map((mistake) => ({
+      id: mistake.id,
+      questionId: mistake.questionId,
+      questionText: questionById.get(mistake.questionId)?.text ?? "Question no longer available",
+      explanation: questionById.get(mistake.questionId)?.explanation ?? null,
       type: mistake.type,
       selectedAnswer: mistake.selectedAnswer,
       correctAnswer: mistake.correctAnswer,
@@ -156,18 +188,32 @@ export async function getDashboardData(userId: string) {
       correctAnswers,
       wrongAnswers,
 
-      // هنربطها بالـWeak Spot Engine بعد شوية
-      weakSpots: 0,
+      weakSpots: activeWeakSpots.length,
 
-      // هنحسب الـstreak بشكل حقيقي بعد كده
+      // A real streak requires a per-day activity history;
+      // Progress stores only each topic's latest activity date.
       dayStreak: 0,
     },
 
     mistakes: recentMistakes,
 
+    allMistakes,
+
     subjects: subjectPerformance,
 
     weakestSubject,
+
+    weakSpots: activeWeakSpots
+      .sort((a, b) => b.priority - a.priority)
+      .map((spot) => ({
+        id: spot.id,
+        subject: spot.subject,
+        topic: spot.topic,
+        accuracy: spot.accuracy,
+        mistakeCount: spot.mistakeCount,
+        priority: spot.priority,
+        lastDetectedAt: spot.lastDetectedAt,
+      })),
 
     sessions: {
       total: sessions.length,

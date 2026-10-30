@@ -1,3 +1,4 @@
+import { BrainCircuit } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Recall = () => {
@@ -43,7 +44,7 @@ const Recall = () => {
           </div>
 
           <div className="feature-card-visual">
-            <span>🧠</span>
+            <span><BrainCircuit size={25} strokeWidth={1.7} aria-hidden="true" /></span>
           </div>
         </div>
       </div>

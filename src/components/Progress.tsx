@@ -1,32 +1,33 @@
 import { useEffect, useRef, useState } from "react";
+import { Sparkles, CircleDot, Flame, Diamond } from "lucide-react";
 
 const milestones = [
   {
     number: "01",
     title: "First Recall",
     description: "Complete your first recall session.",
-    icon: "✦",
+    icon: Sparkles,
     unlocked: true,
   },
   {
     number: "02",
     title: "Recall Rookie",
     description: "Solve 50 medical questions.",
-    icon: "◉",
+    icon: CircleDot,
     unlocked: true,
   },
   {
     number: "03",
     title: "Memory Builder",
     description: "Reach a 7-day recall streak.",
-    icon: "🔥",
+    icon: Flame,
     unlocked: false,
   },
   {
     number: "04",
     title: "Topic Master",
     description: "Master your first medical topic.",
-    icon: "◆",
+    icon: Diamond,
     unlocked: false,
   },
 ];
@@ -187,7 +188,7 @@ const Progress = () => {
             <div className="progress-stat-card">
 
               <div className="progress-stat-icon streak">
-                🔥
+                <Flame size={16} strokeWidth={1.8} aria-hidden="true" />
               </div>
 
               <div>
@@ -320,9 +321,7 @@ const Progress = () => {
 
                 <div className="milestone-node">
 
-                  <span>
-                    {milestone.icon}
-                  </span>
+                  <milestone.icon size={18} strokeWidth={1.8} aria-hidden="true" />
 
                 </div>
 
@@ -385,7 +384,7 @@ const Progress = () => {
           <div className="progress-insight-card">
 
             <div className="insight-card-icon">
-              ⏱
+              <CircleDot size={16} strokeWidth={1.8} aria-hidden="true" />
             </div>
 
             <div>

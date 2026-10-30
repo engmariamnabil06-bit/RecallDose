@@ -48,12 +48,17 @@ const ForgotPassword = () => {
             </div>
 
             <button
-              type="submit"
+              type="button"
               className="auth-primary-button"
+              disabled
+              aria-describedby="password-reset-unavailable"
             >
-              Send Reset Link
-              <span>→</span>
+              Password reset unavailable
             </button>
+
+            <p id="password-reset-unavailable" className="form-error" role="status">
+              Secure password recovery is not connected yet. This form will not send an email or change your password.
+            </p>
 
           </form>
 

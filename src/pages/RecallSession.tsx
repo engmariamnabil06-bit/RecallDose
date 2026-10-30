@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiUrl } from "../lib/api";
 
 type RecallOption = {
@@ -15,6 +15,7 @@ type RecallQuestion = {
   difficulty: string;
   subject: string | null;
   topic: string | null;
+  answered: boolean;
   options: RecallOption[];
 };
 
@@ -37,6 +38,8 @@ type AnswerResult = {
   question: {
     id: string;
     explanation: string | null;
+    correctOptionId: string;
+    correctAnswer: string;
   };
   session: {
     id: string;
@@ -49,6 +52,8 @@ type AnswerResult = {
 
 const RecallSession = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const dailyDoseId = searchParams.get("dailyDoseId");
 
   const [sessionData, setSessionData] =
     useState<RecallSessionData | null>(null);
@@ -65,6 +70,13 @@ const RecallSession = () => {
     useState<AnswerResult | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const [sessionSummary, setSessionSummary] = useState<{
+    totalQuestions: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    skippedAnswers: number;
+  } | null>(null);
 
   const [isSubmitting, setIsSubmitting] =
     useState(false);
@@ -87,6 +99,7 @@ const RecallSession = () => {
             credentials: "include",
             body: JSON.stringify({
               count: 5,
+              ...(dailyDoseId ? { dailyDoseId } : {}),
             }),
           }
         );
@@ -101,6 +114,16 @@ const RecallSession = () => {
         }
 
         setSessionData(data);
+        const firstUnanswered = data.questions.findIndex(
+          (question: RecallQuestion) => !question.answered
+        );
+
+        if (firstUnanswered < 0) {
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+
+        setCurrentQuestionIndex(firstUnanswered);
       } catch (error) {
         console.error(
           "START RECALL SESSION ERROR:",
@@ -192,7 +215,13 @@ const RecallSession = () => {
       sessionData.questions.length - 1;
 
     if (isLastQuestion) {
-      navigate("/dashboard");
+      const finalSession = answerResult?.session;
+      setSessionSummary({
+        totalQuestions: finalSession?.totalQuestions ?? sessionData.questions.length,
+        correctAnswers: finalSession?.correctAnswers ?? 0,
+        wrongAnswers: finalSession?.wrongAnswers ?? 0,
+        skippedAnswers: finalSession?.skippedAnswers ?? 0,
+      });
       return;
     }
 
@@ -250,6 +279,38 @@ const RecallSession = () => {
     );
   }
 
+  if (sessionSummary) {
+    const accuracy = sessionSummary.totalQuestions > 0
+      ? Math.round((sessionSummary.correctAnswers / sessionSummary.totalQuestions) * 100)
+      : 0;
+
+    return (
+      <div className="recall-session-page">
+        <div className="recall-session-inner">
+          <main className="question-container session-summary-card">
+            <span className="feature-eyebrow">SESSION COMPLETE</span>
+            <h1>Your recall, measured.</h1>
+            <p className="session-summary-intro">A focused review is another step toward long-term retention.</p>
+            <div className="session-summary-score">
+              <strong>{accuracy}%</strong>
+              <span>accuracy</span>
+            </div>
+            <div className="session-summary-stats">
+              <div><strong>{sessionSummary.correctAnswers}</strong><span>Correct</span></div>
+              <div><strong>{sessionSummary.wrongAnswers}</strong><span>Incorrect</span></div>
+              <div><strong>{sessionSummary.skippedAnswers}</strong><span>Skipped</span></div>
+              <div><strong>{sessionSummary.totalQuestions}</strong><span>Total</span></div>
+            </div>
+            <div className="session-summary-actions">
+              <Link to="/mistakes" className="feature-secondary-button">Review mistakes</Link>
+              <Link to="/dashboard" className="feature-primary-button">Back to dashboard</Link>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   if (!sessionData || !currentQuestion) {
     return (
       <div className="recall-session-page">
@@ -286,7 +347,7 @@ const RecallSession = () => {
     answerResult &&
     currentQuestion.options.find(
       (option) =>
-        option.id !== answerResult.answer.selectedOptionId
+        option.id === answerResult.question.correctOptionId
     );
 
   return (
@@ -343,8 +404,6 @@ const RecallSession = () => {
 
                 const isCorrectOption =
                   submitted &&
-                  answerResult?.answer.isCorrect ===
-                    false &&
                   option.id === correctOption?.id;
 
                 const isWrongSelectedOption =
@@ -424,6 +483,13 @@ const RecallSession = () => {
                     ? "Correct answer."
                     : "Incorrect answer."}
                 </strong>
+
+                {!isCorrect && correctOption && (
+                  <p className="correct-answer-reveal">
+                    <strong>Correct answer:</strong>{" "}
+                    {correctOption.text}
+                  </p>
+                )}
 
                 <p>
                   {answerResult?.question

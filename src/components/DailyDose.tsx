@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Flame, Sparkles } from "lucide-react";
 
 const DailyDose = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -153,7 +154,7 @@ const DailyDose = () => {
             <div className="dose-mini-card streak-card">
 
               <div className="mini-card-icon">
-                🔥
+                <Flame size={20} strokeWidth={1.8} aria-hidden="true" />
               </div>
 
               <div className="mini-card-content">
@@ -174,7 +175,7 @@ const DailyDose = () => {
             <div className="dose-mini-card progress-card">
 
               <div className="mini-card-icon progress-mini-icon">
-                ✦
+                <Sparkles size={20} strokeWidth={1.8} aria-hidden="true" />
               </div>
 
               <div className="mini-card-content">

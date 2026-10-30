@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BookOpen, BrainCircuit, Target, Trophy } from "lucide-react";
 
 const steps = [
   {
@@ -6,28 +7,28 @@ const steps = [
     title: "Learn",
     description:
       "Understand the drug, mechanism, indications, and the clinical logic behind it.",
-    icon: "📖",
+    icon: BookOpen,
   },
   {
     number: "02",
     title: "Recall",
     description:
       "Close the notes and challenge your memory. Can you bring the information back?",
-    icon: "🧠",
+    icon: BrainCircuit,
   },
   {
     number: "03",
     title: "Practice",
     description:
       "Test yourself with MCQs, clinical cases, and exam-style questions.",
-    icon: "🎯",
+    icon: Target,
   },
   {
     number: "04",
     title: "Master",
     description:
       "Track your mistakes, strengthen weak areas, and turn knowledge into confidence.",
-    icon: "✦",
+    icon: Trophy,
   },
 ];
 
@@ -119,7 +120,7 @@ const Method = () => {
               {/* ICON */}
 
               <div className="method-icon">
-                <span>{step.icon}</span>
+                <step.icon size={23} strokeWidth={1.7} aria-hidden="true" />
               </div>
 
 

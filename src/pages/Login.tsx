@@ -1,3 +1,4 @@
+import { Stethoscope } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiUrl } from "../lib/api";
@@ -124,7 +125,7 @@ const Login = () => {
 
             <h1>
               Hey, future doctor.
-              <span>🩺</span>
+              <span><Stethoscope size={23} strokeWidth={1.7} aria-hidden="true" /></span>
             </h1>
 
             <p>

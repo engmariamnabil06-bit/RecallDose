@@ -7,7 +7,8 @@ type WeakSpotInput = {
 
 function calculatePriority(
   accuracy: number,
-  mistakeCount: number
+  mistakeCount: number,
+  daysSinceActivity: number
 ): number {
   let priority = 0;
 
@@ -19,7 +20,16 @@ function calculatePriority(
     priority += 20;
   }
 
+  // Repeated mistakes matter, but stale weak areas also need attention.
   priority += Math.min(mistakeCount * 5, 50);
+
+  if (daysSinceActivity >= 30) {
+    priority += 15;
+  } else if (daysSinceActivity >= 14) {
+    priority += 10;
+  } else if (daysSinceActivity >= 7) {
+    priority += 5;
+  }
 
   return Math.min(priority, 100);
 }
@@ -49,14 +59,20 @@ export async function detectWeakSpots(
       continue;
     }
 
-    const mistakeCount =
-      progress.wrongAnswers;
+    const mistakeCount = progress.wrongAnswers;
+    const lastActivity = progress.lastActivityAt
+      ? new Date(progress.lastActivityAt as unknown as string).getTime()
+      : now.epochMilliseconds;
+    const daysSinceActivity = Math.max(
+      0,
+      Math.floor((now.epochMilliseconds - lastActivity) / 86_400_000)
+    );
 
-    const priority =
-      calculatePriority(
-        progress.accuracy,
-        mistakeCount
-      );
+    const priority = calculatePriority(
+      progress.accuracy,
+      mistakeCount,
+      daysSinceActivity
+    );
 
     const isWeak =
       progress.accuracy < 70 ||

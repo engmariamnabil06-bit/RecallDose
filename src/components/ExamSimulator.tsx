@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Sparkles, Timer, Target, ChartNoAxesCombined } from "lucide-react";
 
 const ExamSimulator = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -61,7 +62,7 @@ const ExamSimulator = () => {
 
             <div className="exam-title-area">
               <div className="exam-icon">
-                ✦
+                <Sparkles size={20} strokeWidth={1.8} aria-hidden="true" />
               </div>
 
               <div>
@@ -176,7 +177,7 @@ const ExamSimulator = () => {
 
           <div className="exam-feature">
             <div className="exam-feature-icon">
-              ⏱
+              <Timer size={20} strokeWidth={1.8} aria-hidden="true" />
             </div>
 
             <div>
@@ -191,7 +192,7 @@ const ExamSimulator = () => {
 
           <div className="exam-feature">
             <div className="exam-feature-icon">
-              🎯
+              <Target size={20} strokeWidth={1.8} aria-hidden="true" />
             </div>
 
             <div>
@@ -206,7 +207,7 @@ const ExamSimulator = () => {
 
           <div className="exam-feature">
             <div className="exam-feature-icon">
-              📊
+              <ChartNoAxesCombined size={20} strokeWidth={1.8} aria-hidden="true" />
             </div>
 
             <div>

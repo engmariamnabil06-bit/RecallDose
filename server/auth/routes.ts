@@ -22,9 +22,22 @@ function getSessionTokenFromCookie(cookieHeader?: string) {
   }
 }
 
+function getCookieAttributes() {
+  const sameSite =
+    process.env.COOKIE_SAME_SITE?.toLowerCase() === "none"
+      ? "None"
+      : "Lax";
+  const secure =
+    process.env.NODE_ENV === "production" || sameSite === "None"
+      ? "; Secure"
+      : "";
+
+  return { sameSite, secure };
+}
+
 function setSessionCookie(token: string) {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return `session=${encodeURIComponent(token)}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Lax${secure}`;
+  const { sameSite, secure } = getCookieAttributes();
+  return `session=${encodeURIComponent(token)}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=${sameSite}${secure}`;
 }
 
 const router = Router();
@@ -99,10 +112,10 @@ router.post("/logout", async (req, res) => {
       }
     }
 
-    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    const { sameSite, secure } = getCookieAttributes();
     res.setHeader(
       "Set-Cookie",
-      `session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${secure}`
+      `session=; HttpOnly; Path=/; Max-Age=0; SameSite=${sameSite}${secure}`
     );
     return res.status(204).end();
   } catch (error) {

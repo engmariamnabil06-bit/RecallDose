@@ -31,7 +31,7 @@ const modeResponses: Record<
     mnemonic: "ACE = Angiotensin Conversion Ends",
   },
   Funny: {
-    title: "Okay, let's make it stick. 😄",
+    title: "Okay, let's make it stick.",
     text:
       "ACE inhibitors basically tell the body: “Hey, let's stop making so much angiotensin II!” Less angiotensin II means less squeezing of blood vessels.",
     tip:

@@ -62,6 +62,17 @@ export async function submitRecallAnswer(
     );
   }
 
+  const correctOption =
+    await db.orm.public.QuestionOption
+      .where({ questionId, isCorrect: true })
+      .first();
+
+  if (!correctOption) {
+    throw new Error(
+      "This question has no correct answer configured"
+    );
+  }
+
   // Prevent counting a previously submitted answer twice.
   const existingAnswer = await db.orm.public.Answer
     .where({ recallSessionId: sessionId, questionId })
@@ -89,6 +100,8 @@ export async function submitRecallAnswer(
       question: {
         id: question.id,
         explanation: question.explanation,
+        correctOptionId: correctOption.id,
+        correctAnswer: correctOption.text,
       },
       session: {
         id: currentSession.id,
@@ -133,7 +146,7 @@ export async function submitRecallAnswer(
       recallSessionId: sessionId,
       type: "WRONG_ANSWER",
       selectedAnswer: selectedOption.text,
-      correctAnswer: await getCorrectAnswer(questionId),
+      correctAnswer: correctOption.text,
       reviewCount: 0,
       resolved: false,
       createdAt: now,
@@ -198,6 +211,8 @@ export async function submitRecallAnswer(
     question: {
       id: question.id,
       explanation: question.explanation,
+      correctOptionId: correctOption.id,
+      correctAnswer: correctOption.text,
     },
     session: {
       id: updatedSession.id,
@@ -212,10 +227,3 @@ export async function submitRecallAnswer(
   };
 }
 
-async function getCorrectAnswer(questionId: string) {
-  const correctOption = await db.orm.public.QuestionOption
-    .where({ questionId, isCorrect: true })
-    .first();
-
-  return correctOption?.text ?? "Correct answer";
-}

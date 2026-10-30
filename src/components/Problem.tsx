@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
+import { Pill, BrainCircuit, Infinity as InfinityIcon } from "lucide-react";
 
 type StatCardProps = {
   value: number;
   suffix: string;
   label: string;
   description: string;
-  icon: string;
+  icon: ComponentType<{ size?: number; strokeWidth?: number; "aria-hidden"?: boolean }>;
   delay: number;
 };
 
@@ -14,7 +15,7 @@ const StatCard = ({
   suffix,
   label,
   description,
-  icon,
+  icon: Icon,
   delay,
 }: StatCardProps) => {
   const [count, setCount] = useState(0);
@@ -85,7 +86,7 @@ const StatCard = ({
       }`}
     >
       <div className="stat-icon">
-        <span>{icon}</span>
+        <Icon size={25} strokeWidth={1.7} aria-hidden="true" />
       </div>
 
       <strong>
@@ -176,7 +177,7 @@ const Problem = () => {
             suffix="+"
             label="Drugs to remember"
             description="Names, mechanisms, indications, side effects..."
-            icon="💊"
+            icon={Pill}
             delay={0}
           />
 
@@ -186,7 +187,7 @@ const Problem = () => {
             suffix="+"
             label="Facts to connect"
             description="Concepts that only make sense when they connect."
-            icon="🧠"
+            icon={BrainCircuit}
             delay={150}
           />
 
@@ -201,8 +202,8 @@ const Problem = () => {
             }`}
           >
 
-            <div className="stat-icon infinity-icon">
-              <span>?</span>
+            <div className="stat-icon infinity-icon" aria-hidden="true">
+              <InfinityIcon size={27} strokeWidth={1.8} />
             </div>
 
             <strong className="infinity-symbol">
