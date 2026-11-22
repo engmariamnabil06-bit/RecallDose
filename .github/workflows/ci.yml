@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -17,10 +17,13 @@ jobs:
   verify:
     name: Build and typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -30,6 +33,30 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Emit Prisma contract and plan study-content migration
+        env:
+          DATABASE_URL: postgresql://local:local@localhost:5432/recalldose?sslmode=disable
+        run: |
+          npx prisma contract emit
+          if ! find migrations/app -mindepth 1 -maxdepth 1 -type d -name '*_persist_study_content' | grep -q .; then
+            npx prisma migration plan --name persist_study_content
+          fi
+
+      - name: Commit generated Prisma artifacts to this pull request
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git add src/prisma/contract.json src/prisma/contract.d.ts migrations/
+          if git diff --cached --quiet; then
+            echo "Prisma artifacts are already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(prisma): emit study-content contract and migration"
+          git push origin "HEAD:${PR_BRANCH}"
 
       - name: Build frontend
         run: npm run build
