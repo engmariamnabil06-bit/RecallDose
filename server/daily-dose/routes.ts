@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { getSessionUser } from "../auth/sessionUser";
+import { getSessionUser } from "../auth/sessionUser.js";
 import {
   buildDailyDose,
   startDailyDose,
   completeDailyDose,
-} from "./service";
+} from "./service.js";
 
 function getSessionTokenFromCookie(
   cookieHeader?: string

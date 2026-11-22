@@ -74,9 +74,41 @@ model User {
   weakSpots     WeakSpot[]
   dailyDoses    DailyDose[]
   fileAccesses  FileAccess[]
+  studyNotes    StudyNote[]
+  studyCards    StudyCard[]
 
   @@index([email])
   @@index([role])
+}
+
+model StudyNote {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  subject   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([userId, subject])
+}
+
+model StudyCard {
+  id        String   @id @default(uuid())
+  userId    String
+  front     String
+  back      String
+  subject   String
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, subject])
 }
 
 model Profile {

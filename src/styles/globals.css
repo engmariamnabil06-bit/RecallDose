@@ -12913,3 +12913,35 @@ button:focus-visible, a:focus-visible { outline:2px solid #8bc5ff; outline-offse
 .problem-stat .stat-icon svg{display:block;width:25px;height:25px;color:#b98aff;stroke:currentColor;filter:drop-shadow(0 0 8px rgba(155,105,255,.32))}
 .problem-stat:nth-child(2) .stat-icon svg{color:#78a9ff;filter:drop-shadow(0 0 8px rgba(87,143,255,.32))}
 .problem-stat.infinity-card .stat-icon svg{color:#b98aff}
+
+
+/* Secure account recovery feedback */
+.form-success {
+  color: #247b61;
+  background: rgba(36, 123, 97, 0.09);
+  border: 1px solid rgba(36, 123, 97, 0.22);
+  border-radius: 10px;
+  padding: 12px 14px;
+  line-height: 1.5;
+}
+
+.dev-reset-link {
+  display: grid;
+  gap: 8px;
+  border: 1px dashed rgba(137, 138, 196, 0.55);
+  border-radius: 12px;
+  padding: 14px;
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.dev-reset-link p {
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.78;
+}
+
+.dev-reset-link a {
+  color: #898AC4;
+  font-weight: 700;
+}

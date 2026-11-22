@@ -23,6 +23,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Recall from "./pages/Recall";
 import RecallSession from "./pages/RecallSession";
@@ -92,6 +93,7 @@ function App() {
           path="/forgot-password"
           element={<ForgotPassword />}
         />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/curriculum" element={<ProtectedRoute><CurriculumExplorer /></ProtectedRoute>} />
         <Route path="/ai-tutor" element={<ProtectedRoute><AITutor /></ProtectedRoute>} />
         <Route path="/study-tools" element={<ProtectedRoute><StudyTools /></ProtectedRoute>} />
