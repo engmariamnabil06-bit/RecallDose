@@ -1,6 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 import crypto from "crypto";
-import { db } from "../db";
+import { db } from "../db.js";
 
 function hashSessionToken(token: string) {
   return crypto
