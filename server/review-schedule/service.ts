@@ -65,5 +65,8 @@ export async function recordMistakeReview(userId: string, mistakeId: string) {
     reviewCount: (mistake.reviewCount ?? 0) + 1,
     updatedAt: now,
   });
+  if (!updated) {
+    throw new Error("Review item could not be updated");
+  }
   return { id: updated.id, resolved: updated.resolved, reviewCount: updated.reviewCount };
 }
