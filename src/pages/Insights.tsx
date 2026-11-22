@@ -435,7 +435,7 @@ export function ProfilePage() {
 
 export function ExamsPage() {
   type Exam = { id: string; title: string; description: string | null; subject: string | null; topic: string | null; durationMinutes: number | null };
-  type ActiveAttempt = Exam & { attemptId: string; startedAt: string; totalQuestions: number };
+  type ActiveAttempt = Exam & { attemptId: string; examId: string; startedAt: string; totalQuestions: number };
   type ExamQuestion = { id: string; text: string; subject: string | null; topic: string | null; selectedOptionId?: string | null; options: Array<{ id: string; text: string }> };
   type Result = { score: number; correctAnswers: number; wrongAnswers: number; skippedAnswers: number; totalQuestions: number };
   const [exams, setExams] = useState<Exam[]>([]);
