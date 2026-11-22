@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
+import { db } from "../db.js";
 
 type WeakSpotInput = {
   userId: string;
