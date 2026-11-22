@@ -1,7 +1,7 @@
 import { Router, type Request } from "express";
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
-import { getSessionUser } from "../auth/sessionUser";
+import { db } from "../db.js";
+import { getSessionUser } from "../auth/sessionUser.js";
 const router = Router();
 // The selected question set is persisted as placeholder Answer rows (selectedOptionId=null).
 // This reuses the existing relational contract and survives process restarts.
