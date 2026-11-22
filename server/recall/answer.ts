@@ -183,6 +183,10 @@ export async function submitRecallAnswer(
       updatedAt: now,
     });
 
+  if (!updatedSession) {
+    throw new Error("Recall session could not be updated.");
+  }
+
   // Complete the linked Daily Dose only when all session questions
   // have been answered.
   if (isComplete && session.dailyDoseId) {
