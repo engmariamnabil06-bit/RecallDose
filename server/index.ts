@@ -1,16 +1,16 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { db } from "./db";
-import authRoutes from "./auth/routes";
-import recallRoutes from "./recall/routes";
-import dashboardRoutes from "./dashboard/routes";
-import dailyDoseRoutes from "./daily-dose/routes";
-import recallTwinRoutes from "./recall-twin/routes";
-import reviewScheduleRoutes from "./review-schedule/routes";
-import aiRoutes from "./ai/routes";
-import examRoutes from "./exams/routes";
-import studyToolsRoutes from "./study-tools/routes";
+import { db } from "./db.js";
+import authRoutes from "./auth/routes.js";
+import recallRoutes from "./recall/routes.js";
+import dashboardRoutes from "./dashboard/routes.js";
+import dailyDoseRoutes from "./daily-dose/routes.js";
+import recallTwinRoutes from "./recall-twin/routes.js";
+import reviewScheduleRoutes from "./review-schedule/routes.js";
+import aiRoutes from "./ai/routes.js";
+import examRoutes from "./exams/routes.js";
+import studyToolsRoutes from "./study-tools/routes.js";
 dotenv.config();
 
 const app = express();
