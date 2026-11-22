@@ -1,10 +1,12 @@
 import { Stethoscope } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { apiUrl } from "../lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const passwordReset = Boolean((location.state as { passwordReset?: boolean } | null)?.passwordReset);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -145,6 +147,8 @@ const Login = () => {
               master what you learn.
             </p>
           </div>
+
+          {passwordReset && <p className="form-success" role="status">Your password was updated. Sign in with your new password.</p>}
 
           <form
             className="auth-form"
