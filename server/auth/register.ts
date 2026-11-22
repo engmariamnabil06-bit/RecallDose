@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { db } from "../db";
+import { db } from "../db.js";
 
 type RegisterInput = {
   email: string;

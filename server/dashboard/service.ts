@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../db.js";
 
 export async function getDashboardData(userId: string) {
   const progressRecords =

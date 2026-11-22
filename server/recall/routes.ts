@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { getSessionUser } from "../auth/sessionUser";
-import { createRecallSession } from "./service";
-import { submitRecallAnswer } from "./answer";
+import { getSessionUser } from "../auth/sessionUser.js";
+import { createRecallSession } from "./service.js";
+import { submitRecallAnswer } from "./answer.js";
 
 function getSessionTokenFromCookie(
   cookieHeader?: string

@@ -6,8 +6,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import pdfParse from "pdf-parse";
 import { createWorker } from "tesseract.js";
-import { db } from "../db";
-import { getSessionUser } from "../auth/sessionUser";
+import { db } from "../db.js";
+import { getSessionUser } from "../auth/sessionUser.js";
 
 const router = Router();
 const here = path.dirname(fileURLToPath(import.meta.url));

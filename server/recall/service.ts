@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
+import { db } from "../db.js";
 
 const DEFAULT_QUESTION_COUNT = 5;
 const MAX_QUESTION_COUNT = 10;

@@ -1,4 +1,4 @@
-﻿import { db } from "../db";
+﻿import { db } from "../db.js";
 
 const doseId = "bef85fe1-8782-423f-877f-22e3d4614395";
 const sessionId = "e500f064-5a73-4a76-98c1-777dad01822a";

@@ -435,9 +435,11 @@ export function ProfilePage() {
 
 export function ExamsPage() {
   type Exam = { id: string; title: string; description: string | null; subject: string | null; topic: string | null; durationMinutes: number | null };
-  type ExamQuestion = { id: string; text: string; subject: string | null; topic: string | null; options: Array<{ id: string; text: string }> };
+  type ActiveAttempt = Exam & { attemptId: string; examId: string; startedAt: string; totalQuestions: number };
+  type ExamQuestion = { id: string; text: string; subject: string | null; topic: string | null; selectedOptionId?: string | null; options: Array<{ id: string; text: string }> };
   type Result = { score: number; correctAnswers: number; wrongAnswers: number; skippedAnswers: number; totalQuestions: number };
   const [exams, setExams] = useState<Exam[]>([]);
+  const [activeAttempts, setActiveAttempts] = useState<ActiveAttempt[]>([]);
   const [exam, setExam] = useState<Exam | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
@@ -461,6 +463,19 @@ export function ExamsPage() {
     return () => { active = false; };
   }, []);
   useEffect(() => {
+    let active = true;
+    fetch(apiUrl("/api/exams/active"), { credentials: "include" })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.message || "Could not load active exam attempts.");
+        if (active) setActiveAttempts(Array.isArray(payload.attempts) ? payload.attempts : []);
+      })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Could not load active exam attempts.");
+      });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
     if (!startedAt || result) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
@@ -479,6 +494,35 @@ export function ExamsPage() {
       setStartedAt(new Date(payload.attempt.startedAt).getTime() || Date.now()); setNow(Date.now());
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not start this exam."); }
     finally { setBusy(false); }
+  }
+
+  async function resumeAttempt(item: ActiveAttempt) {
+    setBusy(true); setError(null); setSuccess(null); setResult(null);
+    try {
+      const response = await fetch(apiUrl(`/api/exams/${item.examId}/${item.attemptId}`), {
+        credentials: "include",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "Could not resume this exam.");
+      const restoredQuestions: ExamQuestion[] = Array.isArray(payload.questions) ? payload.questions : [];
+      const restoredAnswers = Object.fromEntries(
+        restoredQuestions
+          .filter((question) => Boolean(question.selectedOptionId))
+          .map((question) => [question.id, question.selectedOptionId as string])
+      );
+      setExam(item);
+      setAttemptId(item.attemptId);
+      setQuestions(restoredQuestions);
+      setAnswers(restoredAnswers);
+      const parsedStart = Date.parse(payload.attempt?.startedAt || item.startedAt);
+      setStartedAt(Number.isFinite(parsedStart) ? parsedStart : Date.now());
+      setNow(Date.now());
+      setSuccess("Your previous exam attempt has been restored.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not resume this exam.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function chooseAnswer(question: ExamQuestion, optionId: string) {
@@ -501,6 +545,7 @@ export function ExamsPage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.message || "Could not finish the exam.");
       setResult(payload.result); setSuccess("Your result has been saved.");
+      setActiveAttempts((current) => current.filter((attempt) => attempt.attemptId !== attemptId));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not finish the exam."); }
     finally { setBusy(false); }
   }
@@ -513,7 +558,8 @@ export function ExamsPage() {
       {success && <p className="insight-success" role="status">{success}</p>}
       {result ? <section className="insight-panel"><div className="insight-stat-grid"><article className="insight-stat"><span>Score</span><strong>{result.score}%</strong></article><article className="insight-stat"><span>Correct</span><strong>{result.correctAnswers}</strong></article><article className="insight-stat"><span>Incorrect</span><strong>{result.wrongAnswers}</strong></article><article className="insight-stat"><span>Skipped</span><strong>{result.skippedAnswers}</strong></article></div><p>Review your mistakes and use them to plan your next study session.</p><button type="button" className="feature-primary-button" onClick={leaveExam}>Back to exam list <ArrowRight size={16} /></button><Link to="/mistakes" className="feature-secondary-button">Review mistake bank</Link></section>
       : exam ? <section className="insight-panel"><div className="insight-dose-meta"><span><Clock3 size={16} /> {remainingSeconds === null ? "Untimed" : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2,"0")} remaining`}</span><span>{Object.keys(answers).length}/{questions.length} answered</span></div>{remainingSeconds === 0 && <p className="insight-error">Time is up. Submit to calculate your score.</p>}{questions.map((question,index) => <article className="insight-weakspot" key={question.id}><div className="insight-weakspot-top"><strong>{index + 1}. {question.text}</strong><span>{question.subject || exam.subject || "Exam"}</span></div><div className="exam-option-list">{question.options.map((option) => <button type="button" key={option.id} className={`exam-option ${answers[question.id] === option.id ? "selected" : ""}`} disabled={Boolean(answers[question.id]) || busy || result !== null} onClick={() => void chooseAnswer(question,option.id)}>{option.text}</button>)}</div>{answers[question.id] && <small>Answer saved</small>}</article>)}<button type="button" className="feature-primary-button" disabled={busy} onClick={() => void finishExam()}>{busy ? "Saving…" : "Submit exam and see result"} <ArrowRight size={16} /></button></section>
-      : <section className="insight-panel"><div className="insight-panel-title"><Clock3 size={19} /><h2>Available exams</h2></div>{loading ? <p className="insight-empty">Loading exams…</p> : exams.length === 0 ? <div className="insight-empty"><p>No published exams are available yet. Once reviewed questions and a published exam are added to the database, they will appear here.</p><Link to="/recall" className="feature-primary-button">Practice recall <ArrowRight size={16} /></Link></div> : exams.map((item) => <article className="insight-weakspot" key={item.id}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject,item.topic].filter(Boolean).join(" · ") || "Mixed questions"}</span></div><span>{item.durationMinutes ? `${item.durationMinutes} min` : "Untimed"}</span></div><p>{item.description || "A focused practice exam based on the active question bank."}</p><button type="button" className="feature-primary-button" disabled={busy} onClick={() => void startExam(item)}>{busy ? "Preparing…" : "Start exam"} <ArrowRight size={16} /></button></article>)}</section>}
+      : <section className="insight-panel"><div className="insight-panel-title"><Clock3 size={19} /><h2>Available exams</h2></div>
+        {activeAttempts.length > 0 && <div className="insight-active-attempts"><h3>Continue an active attempt</h3>{activeAttempts.map((item) => <article className="insight-weakspot" key={item.attemptId}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject, item.topic].filter(Boolean).join(" · ") || "Mixed questions"}</span></div><span>{item.totalQuestions} questions</span></div><p>Started {new Date(item.startedAt).toLocaleString()} · Your saved answers will be restored.</p><button type="button" className="feature-primary-button" disabled={busy} onClick={() => void resumeAttempt(item)}>{busy ? "Restoring…" : "Resume exam"} <ArrowRight size={16} /></button></article>)}</div>}{loading ? <p className="insight-empty">Loading exams…</p> : exams.length === 0 ? <div className="insight-empty"><p>No published exams are available yet. Once reviewed questions and a published exam are added to the database, they will appear here.</p><Link to="/recall" className="feature-primary-button">Practice recall <ArrowRight size={16} /></Link></div> : exams.map((item) => <article className="insight-weakspot" key={item.id}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject,item.topic].filter(Boolean).join(" · ") || "Mixed questions"}</span></div><span>{item.durationMinutes ? `${item.durationMinutes} min` : "Untimed"}</span></div><p>{item.description || "A focused practice exam based on the active question bank."}</p><button type="button" className="feature-primary-button" disabled={busy} onClick={() => void startExam(item)}>{busy ? "Preparing…" : "Start exam"} <ArrowRight size={16} /></button></article>)}</section>}
     </PageShell>
   );
 }

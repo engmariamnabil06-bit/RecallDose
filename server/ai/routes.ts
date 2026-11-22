@@ -1,5 +1,5 @@
 import { Router, type Request } from "express";
-import { getSessionUser } from "../auth/sessionUser";
+import { getSessionUser } from "../auth/sessionUser.js";
 
 const router = Router();
 const WINDOW_MS = 60_000;
