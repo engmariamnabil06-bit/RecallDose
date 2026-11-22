@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { Temporal } from "@js-temporal/polyfill";
 import bcrypt from "bcryptjs";
 import { db } from "../db.js";
 
@@ -167,6 +168,7 @@ export async function requestPasswordReset(emailInput: string): Promise<string |
   } catch (error) {
     // Do not log the recipient, token, or reset URL.
     console.error("Password reset email delivery failed:", error instanceof Error ? error.message : "Unknown provider error");
+    if (process.env.NODE_ENV !== "production") return resetUrl;
   }
   return null;
 }
@@ -197,7 +199,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
   // Changing the password hash also invalidates this stateless reset token.
   // Revoke every previous session so a password change signs the account out everywhere.
   await db.orm.public.Session.where({ userId: user.id, revokedAt: null }).update({
-    revokedAt: new Date(),
+    revokedAt: Temporal.Now.instant(),
   });
   return true;
 }
