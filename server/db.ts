@@ -1,6 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 
-globalThis.Temporal = Temporal;
+Object.assign(globalThis, { Temporal });
 
 import dotenv from "dotenv";
 import postgres from "@prisma/orm-postgres/runtime";
