@@ -1,8 +1,8 @@
 
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
-import { updateProgress } from "../progress/service";
-import { detectWeakSpots } from "../weakspots/service";
+import { db } from "../db.js";
+import { updateProgress } from "../progress/service.js";
+import { detectWeakSpots } from "../weakspots/service.js";
 
 type SubmitRecallAnswerInput = {
   userId: string;
