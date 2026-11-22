@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
+import { db } from "../db.js";
 
 const REVIEW_INTERVAL_DAYS = [1, 3, 7, 14, 30];
 
@@ -24,7 +24,7 @@ export async function buildReviewSchedule(userId: string) {
     const createdAt = Temporal.Instant.from(
       new Date(mistake.updatedAt as unknown as string).toISOString()
     );
-    const dueAt = createdAt.add({ days: intervalDays });
+    const dueAt = createdAt.add({ hours: intervalDays * 24 });
     const dueInHours = Math.ceil(
       Number(dueAt.epochMilliseconds - now.epochMilliseconds) / 3_600_000
     );
