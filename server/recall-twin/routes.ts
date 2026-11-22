@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getSessionUser } from "../auth/sessionUser";
-import { buildRecallTwin } from "./service";
+import { getSessionUser } from "../auth/sessionUser.js";
+import { buildRecallTwin } from "./service.js";
 
 function getSessionTokenFromCookie(cookieHeader?: string) {
   if (!cookieHeader) return null;
