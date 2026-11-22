@@ -125,7 +125,7 @@ router.post("/login", async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
     return res.status(400).json({ message: "Please enter a valid email address." });
   }
 
