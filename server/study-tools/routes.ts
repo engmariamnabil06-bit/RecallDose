@@ -33,9 +33,9 @@ const upload = multer({
   },
 });
 
-type StudyNote = { id: string; title: string; subject: string; content: string; updatedAt: string };
-type StudyCard = { id: string; front: string; back: string; subject: string; createdAt: string };
-type StudyData = { notes: StudyNote[]; cards: StudyCard[] };
+type LegacyNote = { id: string; title: string; subject: string; content: string; updatedAt: string };
+type LegacyCard = { id: string; front: string; back: string; subject: string; createdAt: string };
+type LegacyStudyData = { notes?: LegacyNote[]; cards?: LegacyCard[] };
 
 function tokenFrom(req: Request): string | null {
   const part = req.headers.cookie?.split(";").find((value) => value.trim().startsWith("session="));
@@ -46,21 +46,88 @@ async function userFor(req: Request) {
   const token = tokenFrom(req);
   return token ? getSessionUser(token) : null;
 }
-function safeId(value: unknown) { return typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value); }
-async function dataPath(userId: string) {
+function safeId(value: unknown): value is string {
+  return typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
+}
+async function legacyDataPath(userId: string) {
   await fs.mkdir(dataRoot, { recursive: true });
   return path.join(dataRoot, `${crypto.createHash("sha256").update(userId).digest("hex")}.json`);
 }
-async function readData(userId: string): Promise<StudyData> {
-  try { return JSON.parse(await fs.readFile(await dataPath(userId), "utf8")) as StudyData; }
-  catch { return { notes: [], cards: [] }; }
+
+async function upsertNote(userId: string, input: { id?: unknown; title: string; subject: string; content: string }) {
+  let id = safeId(input.id) ? input.id : crypto.randomUUID();
+  const existing = await db.orm.public.StudyNote.where({ id, userId }).first();
+  if (existing) {
+    return db.orm.public.StudyNote.where({ id, userId }).update({
+      title: input.title.trim(),
+      subject: input.subject.trim(),
+      content: input.content.trim(),
+    });
+  }
+  const collision = await db.orm.public.StudyNote.where({ id }).first();
+  if (collision) id = crypto.randomUUID();
+  return db.orm.public.StudyNote.create({
+    id,
+    userId,
+    title: input.title.trim(),
+    subject: input.subject.trim(),
+    content: input.content.trim(),
+  });
 }
-async function writeData(userId: string, data: StudyData) {
-  const file = await dataPath(userId);
-  const temp = `${file}.${crypto.randomUUID()}.tmp`;
-  await fs.writeFile(temp, JSON.stringify(data), { encoding: "utf8", mode: 0o600 });
-  await fs.rename(temp, file);
+
+async function upsertCard(userId: string, input: { id?: unknown; front: string; back: string; subject: string }) {
+  let id = safeId(input.id) ? input.id : crypto.randomUUID();
+  const existing = await db.orm.public.StudyCard.where({ id, userId }).first();
+  if (existing) {
+    return db.orm.public.StudyCard.where({ id, userId }).update({
+      front: input.front.trim(),
+      back: input.back.trim(),
+      subject: input.subject.trim(),
+    });
+  }
+  const collision = await db.orm.public.StudyCard.where({ id }).first();
+  if (collision) id = crypto.randomUUID();
+  return db.orm.public.StudyCard.create({
+    id,
+    userId,
+    front: input.front.trim(),
+    back: input.back.trim(),
+    subject: input.subject.trim(),
+  });
 }
+
+const migratedLegacyUsers = new Set<string>();
+async function migrateLegacyStudyData(userId: string) {
+  if (migratedLegacyUsers.has(userId)) return;
+  const file = await legacyDataPath(userId);
+  let legacy: LegacyStudyData;
+  try {
+    legacy = JSON.parse(await fs.readFile(file, "utf8")) as LegacyStudyData;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      migratedLegacyUsers.add(userId);
+      return;
+    }
+    throw error;
+  }
+
+  for (const note of Array.isArray(legacy.notes) ? legacy.notes : []) {
+    if (note && typeof note.title === "string" && typeof note.subject === "string" && typeof note.content === "string") {
+      await upsertNote(userId, note);
+    }
+  }
+  for (const card of Array.isArray(legacy.cards) ? legacy.cards : []) {
+    if (card && typeof card.front === "string" && typeof card.back === "string" && typeof card.subject === "string") {
+      await upsertCard(userId, card);
+    }
+  }
+
+  await fs.unlink(file).catch((error) => {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  });
+  migratedLegacyUsers.add(userId);
+}
+
 async function extractText(filePath: string, ext: string): Promise<{ text: string; method: string }> {
   if (ext === ".txt" || ext === ".md") return { text: (await fs.readFile(filePath, "utf8")).slice(0, 200_000), method: "text-file" };
   if (ext === ".pdf") {
@@ -73,53 +140,140 @@ async function extractText(filePath: string, ext: string): Promise<{ text: strin
     return { text: (result.data.text || "").trim().slice(0, 100_000), method: "image-ocr-eng" };
   } finally { await worker.terminate(); }
 }
-
 router.put("/notes/sync", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
   const notes = req.body?.notes;
-  if (!Array.isArray(notes) || notes.length > 500 || notes.some((n: any) => !n || typeof n.id !== "string" || typeof n.title !== "string" || n.title.length > 120 || typeof n.subject !== "string" || typeof n.content !== "string" || n.content.length > 30000 || typeof n.updatedAt !== "string")) return res.status(400).json({ message: "Invalid notes payload." });
-  const data = await readData(user.id); data.notes = notes.map((n: any) => ({ id: n.id, title: n.title, subject: n.subject, content: n.content, updatedAt: n.updatedAt })); await writeData(user.id, data); return res.json({ notes: data.notes });
+  if (!Array.isArray(notes) || notes.length > 500 || notes.some((note: any) =>
+    !note || typeof note.title !== "string" || !note.title.trim() || note.title.length > 120 ||
+    typeof note.subject !== "string" || note.subject.length > 100 ||
+    typeof note.content !== "string" || !note.content.trim() || note.content.length > 30000
+  )) return res.status(400).json({ message: "Invalid notes payload." });
+
+  try {
+    await migrateLegacyStudyData(user.id);
+    for (const note of notes) await upsertNote(user.id, note);
+    const saved = await db.orm.public.StudyNote.where({ userId: user.id }).all();
+    return res.json({ notes: saved.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))) });
+  } catch (error) {
+    console.error("sync study notes", error);
+    return res.status(500).json({ message: "Could not sync study notes." });
+  }
 });
+
 router.put("/cards/sync", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
   const cards = req.body?.cards;
-  if (!Array.isArray(cards) || cards.length > 1000 || cards.some((c: any) => !c || typeof c.id !== "string" || typeof c.front !== "string" || c.front.length > 500 || typeof c.back !== "string" || c.back.length > 3000 || typeof c.subject !== "string" || typeof c.createdAt !== "string")) return res.status(400).json({ message: "Invalid flashcards payload." });
-  const data = await readData(user.id); data.cards = cards.map((c: any) => ({ id: c.id, front: c.front, back: c.back, subject: c.subject, createdAt: c.createdAt })); await writeData(user.id, data); return res.json({ cards: data.cards });
+  if (!Array.isArray(cards) || cards.length > 1000 || cards.some((card: any) =>
+    !card || typeof card.front !== "string" || !card.front.trim() || card.front.length > 500 ||
+    typeof card.back !== "string" || !card.back.trim() || card.back.length > 3000 ||
+    typeof card.subject !== "string" || card.subject.length > 100
+  )) return res.status(400).json({ message: "Invalid flashcards payload." });
+
+  try {
+    await migrateLegacyStudyData(user.id);
+    for (const card of cards) await upsertCard(user.id, card);
+    const saved = await db.orm.public.StudyCard.where({ userId: user.id }).all();
+    return res.json({ cards: saved.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))) });
+  } catch (error) {
+    console.error("sync study flashcards", error);
+    return res.status(500).json({ message: "Could not sync flashcards." });
+  }
 });
 
 router.get("/notes", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
-  const data = await readData(user.id); return res.json({ notes: data.notes });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
+  try {
+    await migrateLegacyStudyData(user.id);
+    const notes = await db.orm.public.StudyNote.where({ userId: user.id }).all();
+    return res.json({ notes: notes.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))) });
+  } catch (error) {
+    console.error("list study notes", error);
+    return res.status(500).json({ message: "Could not load study notes." });
+  }
 });
+
 router.post("/notes", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
   const { title, subject, content, id } = req.body ?? {};
-  if (typeof title !== "string" || !title.trim() || title.length > 120 || typeof content !== "string" || !content.trim() || content.length > 30000 || typeof subject !== "string" || subject.length > 100) return res.status(400).json({ message: "A title, subject and note content (up to 30,000 characters) are required." });
-  const data = await readData(user.id); const now = new Date().toISOString();
-  if (id && safeId(id)) {
-    const index = data.notes.findIndex((note) => note.id === id);
-    if (index >= 0) data.notes[index] = { id, title: title.trim(), subject, content: content.trim(), updatedAt: now };
-    else data.notes.unshift({ id, title: title.trim(), subject, content: content.trim(), updatedAt: now });
-  } else data.notes.unshift({ id: crypto.randomUUID(), title: title.trim(), subject, content: content.trim(), updatedAt: now });
-  await writeData(user.id, data); return res.json({ notes: data.notes });
+  if (typeof title !== "string" || !title.trim() || title.length > 120 ||
+      typeof subject !== "string" || subject.length > 100 ||
+      typeof content !== "string" || !content.trim() || content.length > 30000) {
+    return res.status(400).json({ message: "A title, subject and note content (up to 30,000 characters) are required." });
+  }
+  try {
+    await migrateLegacyStudyData(user.id);
+    await upsertNote(user.id, { id, title, subject, content });
+    const notes = await db.orm.public.StudyNote.where({ userId: user.id }).all();
+    return res.status(201).json({ notes: notes.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))) });
+  } catch (error) {
+    console.error("save study note", error);
+    return res.status(500).json({ message: "Could not save this note." });
+  }
 });
+
 router.delete("/notes/:id", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
-  const data = await readData(user.id); data.notes = data.notes.filter((note) => note.id !== req.params.id); await writeData(user.id, data); return res.json({ notes: data.notes });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
+  try {
+    await migrateLegacyStudyData(user.id);
+    await db.orm.public.StudyNote.where({ id: req.params.id, userId: user.id }).delete();
+    const notes = await db.orm.public.StudyNote.where({ userId: user.id }).all();
+    return res.json({ notes: notes.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt))) });
+  } catch (error) {
+    console.error("delete study note", error);
+    return res.status(500).json({ message: "Could not delete this note." });
+  }
 });
+
 router.get("/cards", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
-  const data = await readData(user.id); return res.json({ cards: data.cards });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
+  try {
+    await migrateLegacyStudyData(user.id);
+    const cards = await db.orm.public.StudyCard.where({ userId: user.id }).all();
+    return res.json({ cards: cards.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))) });
+  } catch (error) {
+    console.error("list study flashcards", error);
+    return res.status(500).json({ message: "Could not load flashcards." });
+  }
 });
+
 router.post("/cards", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
-  const { front, back, subject } = req.body ?? {};
-  if (typeof front !== "string" || !front.trim() || front.length > 500 || typeof back !== "string" || !back.trim() || back.length > 3000 || typeof subject !== "string" || subject.length > 100) return res.status(400).json({ message: "A front, back and subject are required." });
-  const data = await readData(user.id); data.cards.unshift({ id: crypto.randomUUID(), front: front.trim(), back: back.trim(), subject, createdAt: new Date().toISOString() }); await writeData(user.id, data); return res.json({ cards: data.cards });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
+  const { front, back, subject, id } = req.body ?? {};
+  if (typeof front !== "string" || !front.trim() || front.length > 500 ||
+      typeof back !== "string" || !back.trim() || back.length > 3000 ||
+      typeof subject !== "string" || subject.length > 100) {
+    return res.status(400).json({ message: "A front, back and subject are required." });
+  }
+  try {
+    await migrateLegacyStudyData(user.id);
+    await upsertCard(user.id, { id, front, back, subject });
+    const cards = await db.orm.public.StudyCard.where({ userId: user.id }).all();
+    return res.status(201).json({ cards: cards.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))) });
+  } catch (error) {
+    console.error("save study flashcard", error);
+    return res.status(500).json({ message: "Could not save this flashcard." });
+  }
 });
+
 router.delete("/cards/:id", async (req, res) => {
-  const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in." });
-  const data = await readData(user.id); data.cards = data.cards.filter((card) => card.id !== req.params.id); await writeData(user.id, data); return res.json({ cards: data.cards });
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
+  try {
+    await migrateLegacyStudyData(user.id);
+    await db.orm.public.StudyCard.where({ id: req.params.id, userId: user.id }).delete();
+    const cards = await db.orm.public.StudyCard.where({ userId: user.id }).all();
+    return res.json({ cards: cards.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))) });
+  } catch (error) {
+    console.error("delete study flashcard", error);
+    return res.status(500).json({ message: "Could not delete this flashcard." });
+  }
 });
 
 router.get("/uploads", async (req, res) => {
