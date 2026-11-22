@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
-import { getSessionUser } from "./sessionUser";
-import { registerUser } from "./register";
-import { loginUser } from "./login";
-import { createSession } from "./session";
+import { db } from "../db.js";
+import { getSessionUser } from "./sessionUser.js";
+import { registerUser } from "./register.js";
+import { loginUser } from "./login.js";
+import { createSession } from "./session.js";
 
 function getSessionTokenFromCookie(cookieHeader?: string) {
   if (!cookieHeader) return null;
