@@ -1,6 +1,6 @@
-import { db } from "../db";
-import { verifyPassword } from "./auth";
-import { createSession } from "./session";
+import { db } from "../db.js";
+import { verifyPassword } from "./auth.js";
+import { createSession } from "./session.js";
 
 type LoginInput = {
   email: string;
