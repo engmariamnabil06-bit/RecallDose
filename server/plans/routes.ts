@@ -28,24 +28,27 @@ router.get("/me", async (req, res) => {
       });
     }
 
-    const trialEndsAt = new Date(subscription.trialEndsAt as any);
-    const trialActive = subscription.status === "TRIALING" && trialEndsAt.getTime() > Date.now();
+    if (!subscription) return res.status(500).json({ message: "Could not initialize your membership." });
+    const currentSubscription = subscription;
+    const trialEndsAt = new Date(currentSubscription.trialEndsAt as any);
+    const trialActive = currentSubscription.status === "TRIALING" && trialEndsAt.getTime() > Date.now();
     if (subscription.status === "TRIALING" && !trialActive) {
-      subscription = await db.orm.public.Subscription.where({ id: subscription.id }).update({
+      const expiredSubscription = await db.orm.public.Subscription.where({ id: currentSubscription.id }).update({
         plan: "FREE", status: "EXPIRED", updatedAt: Temporal.Now.instant(),
       });
     }
 
-    const activeTrialEnd = new Date(subscription.trialEndsAt as any);
+    const activeSubscription = trialActive ? currentSubscription : (typeof expiredSubscription === "undefined" ? currentSubscription : expiredSubscription);
+    const activeTrialEnd = new Date(activeSubscription.trialEndsAt as any);
     const daysRemaining = trialActive
       ? Math.max(0, Math.ceil((activeTrialEnd.getTime() - Date.now()) / 86400000))
       : 0;
 
     return res.json({
-      plan: trialActive ? "FREE_TRIAL" : subscription.plan,
-      status: trialActive ? "TRIALING" : subscription.status,
-      trialStartedAt: subscription.trialStartedAt,
-      trialEndsAt: subscription.trialEndsAt,
+      plan: trialActive ? "FREE_TRIAL" : activeSubscription.plan,
+      status: trialActive ? "TRIALING" : activeSubscription.status,
+      trialStartedAt: activeSubscription.trialStartedAt,
+      trialEndsAt: activeSubscription.trialEndsAt,
       trialDaysRemaining: daysRemaining,
       paymentEnabled: false,
       paymentMethods: ["FAWRY_PLUS", "ORANGE_WALLET"],
