@@ -154,7 +154,7 @@ export default function Dashboard() {
         <div className="rd-nav-group"><div className="rd-nav-caption">WORKSPACE</div>
           <Link className="rd-nav-item" to="/study-tools"><FileText size={18}/><span>Notes & Flashcards</span></Link>
           <Link className="rd-nav-item" to="/curriculum"><CloudUpload size={18}/><span>Upload & OCR</span><small>NEW</small></Link>
-          {user.role === "ADMIN" && <Link className="rd-nav-item" to="/admin/questions"><ClipboardList size={18}/><span>Question Bank Admin</span></Link>}
+          {user.role === "ADMIN" && <><Link className="rd-nav-item" to="/admin/questions"><ClipboardList size={18}/><span>Question Bank Admin</span></Link><Link className="rd-nav-item" to="/admin/exams"><ClipboardList size={18}/><span>Exam Builder</span></Link></>}
         </div>
       </nav>
       <div className="rd-pro-card"><span className="rd-pro-icon"><Zap size={19}/></span><strong>Make every session count</strong><p>Build a consistent study rhythm, one recall at a time.</p><Link to="/progress">Explore your progress <ArrowRight size={14}/></Link></div>

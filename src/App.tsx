@@ -33,6 +33,7 @@ import CurriculumExplorer from "./pages/CurriculumExplorer";
 import StudyTools from "./pages/StudyTools";
 import UploadAndOCR from "./pages/UploadAndOCR";
 import AdminQuestionBank from "./pages/AdminQuestionBank";
+import AdminExamBuilder from "./pages/AdminExamBuilder";
 import {
   DailyDosePage,
   ExamsPage,
@@ -100,6 +101,7 @@ function App() {
         <Route path="/study-tools" element={<ProtectedRoute><StudyTools /></ProtectedRoute>} />
         <Route path="/upload-ocr" element={<ProtectedRoute><UploadAndOCR /></ProtectedRoute>} />
         <Route path="/admin/questions" element={<ProtectedRoute><AdminQuestionBank /></ProtectedRoute>} />
+        <Route path="/admin/exams" element={<ProtectedRoute><AdminExamBuilder /></ProtectedRoute>} />
 
         <Route
           path="/dashboard"

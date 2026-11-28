@@ -102,7 +102,7 @@ export default function AdminQuestionBank() {
   }
 
   return <main className="aq-page">
-    <header className="aq-top"><Link to="/dashboard"><ArrowLeft size={16}/> Dashboard</Link><span><ShieldCheck size={16}/> RECALLDOSE · ADMIN</span></header>
+    <header className="aq-top"><Link to="/dashboard"><ArrowLeft size={16}/> Dashboard</Link><span><ShieldCheck size={16}/> RECALLDOSE · ADMIN</span><Link to="/admin/exams">Exam Builder →</Link></header>
     <div className="aq-shell">
       <section className="aq-heading"><span className="aq-kicker"><BookOpenCheck size={16}/> CONTENT QUALITY WORKSPACE</span><h1>Question bank <em>review.</em></h1><p>Create source-linked questions, check their answers, and approve them before they become available to learners.</p></section>
       {allowed === false ? <section className="aq-panel aq-denied"><ShieldCheck size={24}/><h2>Administrator access required</h2><p>This area is restricted to accounts with the ADMIN role.</p><Link to="/dashboard">Return to dashboard</Link></section> : <>
