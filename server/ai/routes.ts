@@ -109,7 +109,7 @@ function configuredProviders(): AIProvider[] {
   return providers;
 }
 
-async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, context: string, examDifficulty: "university" | "medium" | "hard"): Promise<string> {
+async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, context: string, examDifficulty: "university" | "medium" | "hard", history: Array<{role:"user"|"assistant";content:string}>): Promise<string> {
   const response = await fetch(`${provider.baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${provider.apiKey}` },
@@ -147,7 +147,7 @@ async function generate(
   let lastError: unknown;
   for (const provider of providers) {
     try {
-      return { answer: await callProvider(provider, mode, prompt, context, examDifficulty) };
+      return { answer: await callProvider(provider, mode, prompt, context, examDifficulty, history) };
     } catch (error) {
       lastError = error;
       console.warn(`AI provider unavailable (${provider.name}); silently trying the next configured provider.`);
@@ -172,12 +172,12 @@ router.post("/chat", async (req, res) => {
   const context = cleanText(req.body?.context, 10000);
   const mode = supportedModes.includes(req.body?.mode) ? req.body.mode as AIMode : "tutor";
   if (prompt.length < 2) return res.status(400).json({ message: "Enter a question or concept to work on." });
-  const rawDifficulty = req.body?.examDifficulty;
+  const history = Array.isArray(req.body?.history)\n    ? req.body.history.slice(-10).flatMap((item: any) => {\n        if (!item || (item.role !== "user" && item.role !== "assistant")) return [];\n        const content = cleanText(item.content, 3000);\n        return content ? [{ role: item.role as "user" | "assistant", content }] : [];\n      })\n    : [];\n  const rawDifficulty = req.body?.examDifficulty;
   const examDifficulty = rawDifficulty === "medium" || rawDifficulty === "hard" ? rawDifficulty : "university";
   if (mode === "exam-coach" && examDifficulty === "university" && context.length < 80) return res.status(400).json({ message: "Upload a previous exam or lecture reference for university-style practice, or choose Medium / Hard for AI-generated questions without a file." });
 
   try {
-    const result = await generate(mode, prompt, context, examDifficulty);
+    const result = await generate(mode, prompt, context, examDifficulty, history);
     return res.json({
       answer: result.answer, mode, examDifficulty: mode === "exam-coach" ? examDifficulty : undefined,
       disclaimer: "For learning only. Verify medical facts with trusted course references; not for patient care.",
