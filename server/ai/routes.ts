@@ -119,6 +119,7 @@ async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, 
       max_tokens: mode === "exam-coach" ? 3200 : mode === "quiz" || mode === "flashcards" || mode === "recall-plan" ? 2200 : 1600,
       messages: [
         { role: "system", content: systemPrompt(mode, context, examDifficulty) },
+        ...history,
         { role: "user", content: prompt },
       ],
     }),
@@ -140,7 +141,8 @@ async function generate(
   mode: AIMode,
   prompt: string,
   context: string,
-  examDifficulty: "university" | "medium" | "hard"
+  examDifficulty: "university" | "medium" | "hard",
+  history: Array<{role:"user"|"assistant";content:string}>
 ): Promise<{ answer: string }> {
   const providers = configuredProviders();
   if (!providers.length) throw new Error("AI_NOT_CONFIGURED");
@@ -172,7 +174,14 @@ router.post("/chat", async (req, res) => {
   const context = cleanText(req.body?.context, 10000);
   const mode = supportedModes.includes(req.body?.mode) ? req.body.mode as AIMode : "tutor";
   if (prompt.length < 2) return res.status(400).json({ message: "Enter a question or concept to work on." });
-  const history = Array.isArray(req.body?.history)\n    ? req.body.history.slice(-10).flatMap((item: any) => {\n        if (!item || (item.role !== "user" && item.role !== "assistant")) return [];\n        const content = cleanText(item.content, 3000);\n        return content ? [{ role: item.role as "user" | "assistant", content }] : [];\n      })\n    : [];\n  const rawDifficulty = req.body?.examDifficulty;
+  const history = Array.isArray(req.body?.history)
+    ? req.body.history.slice(-10).flatMap((item: any) => {
+        if (!item || (item.role !== "user" && item.role !== "assistant")) return [];
+        const content = cleanText(item.content, 3000);
+        return content ? [{ role: item.role as "user" | "assistant", content }] : [];
+      })
+    : [];
+  const rawDifficulty = req.body?.examDifficulty;
   const examDifficulty = rawDifficulty === "medium" || rawDifficulty === "hard" ? rawDifficulty : "university";
   if (mode === "exam-coach" && examDifficulty === "university" && context.length < 80) return res.status(400).json({ message: "Upload a previous exam or lecture reference for university-style practice, or choose Medium / Hard for AI-generated questions without a file." });
 
