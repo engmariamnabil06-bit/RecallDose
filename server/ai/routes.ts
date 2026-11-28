@@ -115,7 +115,7 @@ async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, 
     body: JSON.stringify({
       model: provider.model,
       temperature: mode === "mnemonic" ? 0.65 : mode === "quiz" || mode === "flashcards" ? 0.25 : 0.3,
-      max_tokens: mode === "quiz" || mode === "flashcards" || mode === "recall-plan" ? 2200 : 1600,
+      max_tokens: mode === "exam-coach" ? 3200 : mode === "quiz" || mode === "flashcards" || mode === "recall-plan" ? 2200 : 1600,
       messages: [
         { role: "system", content: systemPrompt(mode, context, examDifficulty) },
         { role: "user", content: prompt },
