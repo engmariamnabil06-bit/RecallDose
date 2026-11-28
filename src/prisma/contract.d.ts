@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'64e1122326332f0b4bb343b12bdf5035b62d8887ddbcc837a999ca2309877054'>;
+  StorageHashBase<'a6f21d59de952118c8726b26643719ea687d1673ef6f235c69f3ab64922207d8'>;
 export type ExecutionHash =
-  ExecutionHashBase<'1c7cc38d5d656d1748941f136f1e3aa6be3bf1b5db8046644929a7e287b87f2a'>;
+  ExecutionHashBase<'565b545e7b1ca102a894c497dbc2d2e541f07d4290e1d03bb8c174db4c22c89f'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -301,6 +301,13 @@ export type FieldOutputTypes = {
       readonly userId: CodecTypes['pg/text@1']['output'];
       readonly wrongAnswers: CodecTypes['pg/int4@1']['output'];
     };
+    readonly ExamQuestion: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly examId: CodecTypes['pg/text@1']['output'];
+      readonly id: CodecTypes['pg/text@1']['output'];
+      readonly questionId: CodecTypes['pg/text@1']['output'];
+      readonly questionOrder: CodecTypes['pg/int4@1']['output'];
+    };
     readonly Faculty: {
       readonly code: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -562,6 +569,13 @@ export type FieldInputTypes = {
       readonly totalQuestions: CodecTypes['pg/int4@1']['input'] | null;
       readonly userId: CodecTypes['pg/text@1']['input'];
       readonly wrongAnswers: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly ExamQuestion: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly examId: CodecTypes['pg/text@1']['input'];
+      readonly id: CodecTypes['pg/text@1']['input'];
+      readonly questionId: CodecTypes['pg/text@1']['input'];
+      readonly questionOrder: CodecTypes['pg/int4@1']['input'];
     };
     readonly Faculty: {
       readonly code: CodecTypes['pg/text@1']['input'] | null;
@@ -825,6 +839,13 @@ export type StorageColumnTypes = {
       readonly userId: CodecTypes['pg/text@1']['output'];
       readonly wrongAnswers: CodecTypes['pg/int4@1']['output'];
     };
+    readonly ExamQuestion: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly examId: CodecTypes['pg/text@1']['output'];
+      readonly id: CodecTypes['pg/text@1']['output'];
+      readonly questionId: CodecTypes['pg/text@1']['output'];
+      readonly questionOrder: CodecTypes['pg/int4@1']['output'];
+    };
     readonly Faculty: {
       readonly code: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1087,6 +1108,13 @@ export type StorageColumnInputTypes = {
       readonly userId: CodecTypes['pg/text@1']['input'];
       readonly wrongAnswers: CodecTypes['pg/int4@1']['input'];
     };
+    readonly ExamQuestion: {
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly examId: CodecTypes['pg/text@1']['input'];
+      readonly id: CodecTypes['pg/text@1']['input'];
+      readonly questionId: CodecTypes['pg/text@1']['input'];
+      readonly questionOrder: CodecTypes['pg/int4@1']['input'];
+    };
     readonly Faculty: {
       readonly code: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1342,7 +1370,8 @@ export namespace Models {
     topic: CodecTypes['pg/text@1']['output'] | null;
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     attempts: public_ExamAttempt[];
-    readonly [RelationKeys]?: 'attempts';
+    questions: public_ExamQuestion[];
+    readonly [RelationKeys]?: 'attempts' | 'questions';
   };
   export type public_ExamAttempt = {
     completedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
@@ -1361,6 +1390,16 @@ export namespace Models {
     mistakes: public_Mistake[];
     user: public_User;
     readonly [RelationKeys]?: 'answers' | 'exam' | 'mistakes' | 'user';
+  };
+  export type public_ExamQuestion = {
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    examId: CodecTypes['pg/text@1']['output'];
+    id: CodecTypes['pg/text@1']['output'];
+    questionId: CodecTypes['pg/text@1']['output'];
+    questionOrder: CodecTypes['pg/int4@1']['output'];
+    exam: public_Exam;
+    question: public_Question;
+    readonly [RelationKeys]?: 'exam' | 'question';
   };
   export type public_Faculty = {
     code: CodecTypes['pg/text@1']['output'] | null;
@@ -1470,12 +1509,13 @@ export namespace Models {
     type: 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'TRUE_FALSE';
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     answers: public_Answer[];
+    examQuestions: public_ExamQuestion[];
     mistakes: public_Mistake[];
     options: public_QuestionOption[];
     recallSessionQuestions: public_RecallSessionQuestion[];
     topicRef: public_Topic | null;
     readonly [RelationKeys]?:
-      'answers' | 'mistakes' | 'options' | 'recallSessionQuestions' | 'topicRef';
+      'answers' | 'examQuestions' | 'mistakes' | 'options' | 'recallSessionQuestions' | 'topicRef';
   };
   export type public_QuestionOption = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -1654,6 +1694,7 @@ export declare const models: {
     DailyDose: Models.public_DailyDose;
     Exam: Models.public_Exam;
     ExamAttempt: Models.public_ExamAttempt;
+    ExamQuestion: Models.public_ExamQuestion;
     Faculty: Models.public_Faculty;
     File: Models.public_File;
     FileAccess: Models.public_FileAccess;
@@ -2094,6 +2135,81 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly ExamQuestion: {
+              columns: {
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly examId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly questionId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly questionOrder: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['examId', 'questionId'] },
+                { readonly columns: readonly ['examId', 'questionOrder'] },
+              ];
+              indexes: readonly [
+                {
+                  readonly name: 'ExamQuestion_examId_idx_a57bdadd';
+                  readonly prefix: 'ExamQuestion_examId_idx';
+                  readonly columns: readonly ['examId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'ExamQuestion_questionId_idx_fdb42076';
+                  readonly prefix: 'ExamQuestion_questionId_idx';
+                  readonly columns: readonly ['questionId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ExamQuestion';
+                    readonly columns: readonly ['examId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Exam';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'ExamQuestion';
+                    readonly columns: readonly ['questionId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Question';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -3917,6 +4033,10 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'ExamAttempt';
     };
+    readonly ExamQuestion: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'ExamQuestion';
+    };
     readonly Faculty: { readonly namespace: 'public' & NamespaceId; readonly model: 'Faculty' };
     readonly File: { readonly namespace: 'public' & NamespaceId; readonly model: 'File' };
     readonly FileAccess: {
@@ -4217,6 +4337,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['examId'];
                 };
               };
+              readonly questions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ExamQuestion';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['examId'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'Exam';
@@ -4344,6 +4475,67 @@ type ContractBase = Omit<
                 readonly totalQuestions: { readonly column: 'totalQuestions' };
                 readonly userId: { readonly column: 'userId' };
                 readonly wrongAnswers: { readonly column: 'wrongAnswers' };
+              };
+            };
+          };
+          readonly ExamQuestion: {
+            readonly fields: {
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly examId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly questionId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly questionOrder: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+            };
+            readonly relations: {
+              readonly exam: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Exam' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['examId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly question: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Question';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['questionId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'ExamQuestion';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly examId: { readonly column: 'examId' };
+                readonly id: { readonly column: 'id' };
+                readonly questionId: { readonly column: 'questionId' };
+                readonly questionOrder: { readonly column: 'questionOrder' };
               };
             };
           };
@@ -4970,6 +5162,17 @@ type ContractBase = Omit<
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
                   readonly model: 'Answer';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['questionId'];
+                };
+              };
+              readonly examQuestions: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'ExamQuestion';
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
@@ -6230,6 +6433,14 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'ExamAttempt';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'ExamQuestion';
             readonly field: 'id';
             readonly namespace: 'public';
           };

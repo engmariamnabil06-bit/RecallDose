@@ -1,0 +1,287 @@
+[
+  {
+    "id": "table.ExamQuestion",
+    "label": "Create table \"ExamQuestion\"",
+    "summary": "Creates table \"ExamQuestion\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ExamQuestion\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ExamQuestion\"",
+        "sql": "CREATE TABLE \"public\".\"ExamQuestion\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"examId\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"questionId\" text NOT NULL,\n  \"questionOrder\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ExamQuestion\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.ExamQuestion.ExamQuestion_examId_questionId_key",
+    "label": "Add unique constraint on \"ExamQuestion\" (examId, questionId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ExamQuestion_examId_questionId_key",
+        "table": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ExamQuestion_examId_questionId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_examId_questionId_key",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ExamQuestion_examId_questionId_key\"",
+        "sql": "ALTER TABLE \"public\".\"ExamQuestion\" ADD CONSTRAINT \"ExamQuestion_examId_questionId_key\" UNIQUE (\"examId\", \"questionId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"ExamQuestion_examId_questionId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_examId_questionId_key",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.ExamQuestion.ExamQuestion_examId_questionOrder_key",
+    "label": "Add unique constraint on \"ExamQuestion\" (examId, questionOrder)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "ExamQuestion_examId_questionOrder_key",
+        "table": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"ExamQuestion_examId_questionOrder_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_examId_questionOrder_key",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"ExamQuestion_examId_questionOrder_key\"",
+        "sql": "ALTER TABLE \"public\".\"ExamQuestion\" ADD CONSTRAINT \"ExamQuestion_examId_questionOrder_key\" UNIQUE (\"examId\", \"questionOrder\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"ExamQuestion_examId_questionOrder_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_examId_questionOrder_key",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ExamQuestion.ExamQuestion_examId_idx_a57bdadd",
+    "label": "Create index \"ExamQuestion_examId_idx_a57bdadd\" on \"ExamQuestion\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ExamQuestion_examId_idx_a57bdadd",
+        "table": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ExamQuestion_examId_idx_a57bdadd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExamQuestion_examId_idx_a57bdadd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ExamQuestion_examId_idx_a57bdadd\"",
+        "sql": "CREATE INDEX \"ExamQuestion_examId_idx_a57bdadd\" ON \"public\".\"ExamQuestion\" (\"examId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ExamQuestion_examId_idx_a57bdadd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExamQuestion_examId_idx_a57bdadd\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.ExamQuestion.ExamQuestion_questionId_idx_fdb42076",
+    "label": "Create index \"ExamQuestion_questionId_idx_fdb42076\" on \"ExamQuestion\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "ExamQuestion_questionId_idx_fdb42076",
+        "table": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"ExamQuestion_questionId_idx_fdb42076\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExamQuestion_questionId_idx_fdb42076\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"ExamQuestion_questionId_idx_fdb42076\"",
+        "sql": "CREATE INDEX \"ExamQuestion_questionId_idx_fdb42076\" ON \"public\".\"ExamQuestion\" (\"questionId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"ExamQuestion_questionId_idx_fdb42076\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ExamQuestion_questionId_idx_fdb42076\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ExamQuestion.ExamQuestion_examId_fkey",
+    "label": "Add foreign key \"ExamQuestion_examId_fkey\" on \"ExamQuestion\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ExamQuestion_examId_fkey",
+        "table": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ExamQuestion_examId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_examId_fkey",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ExamQuestion_examId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ExamQuestion\"\nADD CONSTRAINT \"ExamQuestion_examId_fkey\"\nFOREIGN KEY (\"examId\")\nREFERENCES \"public\".\"Exam\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ExamQuestion_examId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_examId_fkey",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ExamQuestion.ExamQuestion_questionId_fkey",
+    "label": "Add foreign key \"ExamQuestion_questionId_fkey\" on \"ExamQuestion\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ExamQuestion_questionId_fkey",
+        "table": "ExamQuestion"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ExamQuestion_questionId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_questionId_fkey",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ExamQuestion_questionId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ExamQuestion\"\nADD CONSTRAINT \"ExamQuestion_questionId_fkey\"\nFOREIGN KEY (\"questionId\")\nREFERENCES \"public\".\"Question\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ExamQuestion_questionId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ExamQuestion_questionId_fkey",
+          "public",
+          "\"public\".\"ExamQuestion\""
+        ]
+      }
+    ]
+  }
+]
