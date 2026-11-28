@@ -51,7 +51,7 @@ const Footer = () => {
             <a href="#features">Subjects</a>
             <a href="#exams">Exams</a>
             <a href="#how-it-works">How it works</a>
-            <a href="#">About</a>
+
           </div>
 
           {/* Creator */}
@@ -73,18 +73,7 @@ const Footer = () => {
               curiosity, code & caffeine.
             </p>
 
-            <div className="footer-socials" aria-label="Contact and social links">
-              <a href="mailto:YOUR_EMAIL_HERE" aria-label="Email Mariam" title="Email" className="social-email">
-                <Mail size={19} strokeWidth={1.9} aria-hidden="true" />
-              </a>
-              <a href="https://wa.me/YOUR_WHATSAPP_NUMBER" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp" className="social-whatsapp">
-                <MessageCircle size={19} strokeWidth={1.9} aria-hidden="true" />
-              </a>
-              <a href="https://www.linkedin.com/in/mariam-nabil-ba719a352/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" title="LinkedIn" className="social-linkedin">
-                <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><path d="M5.2 3.4a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4ZM3.4 9.4H7v11.2H3.4V9.4Zm5.8 0h3.4v1.5h.05c.47-.9 1.62-1.85 3.34-1.85 3.57 0 4.23 2.35 4.23 5.4v6.15h-3.55v-5.45c0-1.3-.03-2.97-1.81-2.97-1.82 0-2.1 1.42-2.1 2.88v5.54H9.2V9.4Z"/></svg>
-              </a>
 
-            </div>
           </div>
         </div>
 

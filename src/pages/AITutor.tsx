@@ -31,14 +31,7 @@ export default function AITutor(){
  const [message,setMessage]=useState("");
  const [context,setContext]=useState(incomingContext);
  const [messages,setMessages]=useState<Message[]>([]);
- const [providers,setProviders]=useState<AIProvider[]>([]);
- const [providerId,setProviderId]=useState("auto");
- const [loadingProviders,setLoadingProviders]=useState(true);
- const [busy,setBusy]=useState(false);
- const [error,setError]=useState("");
- const [statusNotice,setStatusNotice]=useState("");
- useEffect(()=>{let active=true;fetch(apiUrl("/api/ai/status"),{credentials:"include"}).then(async response=>{const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.message||"Could not load the AI model list.");if(active)setProviders(Array.isArray(data.providers)?data.providers:[]);}).catch(cause=>{if(active)setError(cause instanceof Error?cause.message:"Could not load AI models.");}).finally(()=>{if(active)setLoadingProviders(false);});return()=>{active=false;};},[]);
- const activeMode=modes.find(item=>item.id===mode)||modes[0];
+ const [busy,setBusy]=useState(false);\n const [error,setError]=useState("");\n const activeMode=modes.find(item=>item.id===mode)||modes[0];
  async function submit(event:FormEvent){event.preventDefault();const question=message.trim();if(!question||busy)return;setError("");setMessages(current=>[...current,{role:"user",text:question}]);setMessage("");setBusy(true);try{const response=await fetch(apiUrl("/api/ai/chat"),{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode,message:question,context:context.trim()})});const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.message||"Could not get an AI response.");setMessages(current=>[...current,{role:"assistant",text:payload.answer}]);}catch(cause){setError(cause instanceof Error?cause.message:"Something went wrong. Please try again.");}finally{setBusy(false);}}
  return <main className="ai-page">
   <div className="ai-topbar"><Link to="/dashboard" className="ai-back"><ArrowLeft size={16}/> Dashboard</Link><span className="ai-brand"><span>R</span> RECALLDOSE AI</span></div>
