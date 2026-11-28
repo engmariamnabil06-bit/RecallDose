@@ -62,3 +62,14 @@ The latest GitHub Actions run for this branch completed successfully: frontend p
 Still not verified by CI: applying the migration to the live Neon database, end-to-end tests against configured AI provider credentials, email delivery from the production domain, durable object storage, distributed rate limiting, and browser-based user journeys. See `PRODUCTION_READINESS.md` for the deployment and academic content checklist.
 
 The persistent question-bank format currently supports single-choice, multiple-choice and true/false. Matching and essay prompts can be generated as AI practice, but are not yet persistently scored bank item types. No authentic Assiut University past-paper corpus is included; AI exam-coach output must be presented as simulated practice unless permitted, source-verified papers are supplied and reviewed.
+
+
+## Follow-up development — exam references and memberships (2026-11-28)
+
+- University Exam Coach now requires at least 300 characters of lecture-section or previous-exam reference material. The learner can paste the material or upload a PDF/image/TXT/MD through Upload & OCR, review extracted text, then return to the selected Exam Coach mode.
+- The exam prompt first profiles observable question style and difficulty, then creates new simulated questions; it is explicitly forbidden from claiming generated items are authentic university past papers or copying supplied questions verbatim.
+- Added a public Plans & Membership page linked from the landing navigation and signed-in dashboard.
+- Package labels carried forward: Free Launch (first 3 months after public launch), Plus and Pro. Monthly and annual billing are planned; a 15–20% annual discount is only a target under evaluation.
+- Planned Egypt payment routes remain Orange Cash and Fawry Yellow. Checkout is deliberately disabled; no money is collected and no subscription is represented as active.
+- Exact prices, plan quotas, provider merchant onboarding, verified webhooks, subscription persistence/entitlement enforcement and cancellation/refund flows remain future implementation requirements. See `PRODUCTION_READINESS.md`.
+
