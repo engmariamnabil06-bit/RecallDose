@@ -170,6 +170,7 @@ router.post("/chat", async (req, res) => {
   const context = cleanText(req.body?.context, 10000);
   const mode = supportedModes.includes(req.body?.mode) ? req.body.mode as AIMode : "tutor";
   if (prompt.length < 2) return res.status(400).json({ message: "Enter a question or concept to work on." });
+  if (mode === "exam-coach" && context.length < 300) return res.status(400).json({ message: "University-level exam practice requires at least one lecture section or previous exam reference (300 characters minimum). Upload a source or paste the section first." });
 
   try {
     const result = await generate(mode, prompt, context);
