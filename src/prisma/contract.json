@@ -64,6 +64,10 @@
       "model": "Session",
       "namespace": "public"
     },
+    "StudyActivity": {
+      "model": "StudyActivity",
+      "namespace": "public"
+    },
     "StudyCard": {
       "model": "StudyCard",
       "namespace": "public"
@@ -250,6 +254,23 @@
               {
                 "name": "SKIPPED",
                 "value": "SKIPPED"
+              }
+            ]
+          },
+          "QuestionReviewStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DRAFT",
+                "value": "DRAFT"
+              },
+              {
+                "name": "APPROVED",
+                "value": "APPROVED"
+              },
+              {
+                "name": "ARCHIVED",
+                "value": "ARCHIVED"
               }
             ]
           },
@@ -1862,6 +1883,54 @@
                   "kind": "scalar"
                 }
               },
+              "reviewStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "QuestionReviewStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "reviewedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewedByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourcePage": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceReference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sourceTitle": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "subject": {
                 "nullable": true,
                 "type": {
@@ -2005,6 +2074,24 @@
                 },
                 "isActive": {
                   "column": "isActive"
+                },
+                "reviewStatus": {
+                  "column": "reviewStatus"
+                },
+                "reviewedAt": {
+                  "column": "reviewedAt"
+                },
+                "reviewedByUserId": {
+                  "column": "reviewedByUserId"
+                },
+                "sourcePage": {
+                  "column": "sourcePage"
+                },
+                "sourceReference": {
+                  "column": "sourceReference"
+                },
+                "sourceTitle": {
+                  "column": "sourceTitle"
                 },
                 "subject": {
                   "column": "subject"
@@ -2524,6 +2611,124 @@
               "table": "Session"
             }
           },
+          "StudyActivity": {
+            "fields": {
+              "activityDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "correctAnswers": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "questionsAnswered": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sessionsCompleted": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "wrongAnswers": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "activityDate": {
+                  "column": "activityDate"
+                },
+                "correctAnswers": {
+                  "column": "correctAnswers"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "questionsAnswered": {
+                  "column": "questionsAnswered"
+                },
+                "sessionsCompleted": {
+                  "column": "sessionsCompleted"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "userId": {
+                  "column": "userId"
+                },
+                "wrongAnswers": {
+                  "column": "wrongAnswers"
+                }
+              },
+              "namespaceId": "public",
+              "table": "StudyActivity"
+            }
+          },
           "StudyCard": {
             "fields": {
               "back": {
@@ -2540,6 +2745,13 @@
                   "kind": "scalar"
                 }
               },
+              "easeFactor": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
               "front": {
                 "nullable": false,
                 "type": {
@@ -2551,6 +2763,41 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "intervalDays": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastRating": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastReviewedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "nextReviewAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "reviewCount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -2602,11 +2849,29 @@
                 "createdAt": {
                   "column": "createdAt"
                 },
+                "easeFactor": {
+                  "column": "easeFactor"
+                },
                 "front": {
                   "column": "front"
                 },
                 "id": {
                   "column": "id"
+                },
+                "intervalDays": {
+                  "column": "intervalDays"
+                },
+                "lastRating": {
+                  "column": "lastRating"
+                },
+                "lastReviewedAt": {
+                  "column": "lastReviewedAt"
+                },
+                "nextReviewAt": {
+                  "column": "nextReviewAt"
+                },
+                "reviewCount": {
+                  "column": "reviewCount"
                 },
                 "subject": {
                   "column": "subject"
@@ -3144,6 +3409,21 @@
                 },
                 "to": {
                   "model": "Session",
+                  "namespace": "public"
+                }
+              },
+              "studyActivities": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "StudyActivity",
                   "namespace": "public"
                 }
               },
@@ -4732,6 +5012,11 @@
                   "prefix": "Question_difficulty_check"
                 },
                 {
+                  "expression": "\"reviewStatus\" IN ('DRAFT', 'APPROVED', 'ARCHIVED')",
+                  "name": "Question_reviewStatus_check_795300dc",
+                  "prefix": "Question_reviewStatus_check"
+                },
+                {
                   "expression": "\"type\" IN ('SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'TRUE_FALSE')",
                   "name": "Question_type_check_e0f687fd",
                   "prefix": "Question_type_check"
@@ -4780,6 +5065,46 @@
                   },
                   "nativeType": "bool",
                   "nullable": false
+                },
+                "reviewStatus": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "APPROVED"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "QuestionReviewStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "reviewedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "reviewedByUserId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "sourcePage": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "sourceReference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "sourceTitle": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "subject": {
                   "codecId": "pg/text@1",
@@ -5348,6 +5673,126 @@
                 }
               ]
             },
+            "StudyActivity": {
+              "columns": {
+                "activityDate": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "correctAnswers": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "questionsAnswered": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "sessionsCompleted": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "wrongAnswers": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "StudyActivity"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId",
+                    "activityDate"
+                  ],
+                  "name": "StudyActivity_userId_activityDate_idx_5e9acfee",
+                  "prefix": "StudyActivity_userId_activityDate_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "StudyActivity_userId_idx_a489d58a",
+                  "prefix": "StudyActivity_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId",
+                    "activityDate"
+                  ]
+                }
+              ]
+            },
             "StudyCard": {
               "columns": {
                 "back": {
@@ -5364,6 +5809,15 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "easeFactor": {
+                  "codecId": "pg/float8@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 2.5
+                  },
+                  "nativeType": "float8",
+                  "nullable": false
+                },
                 "front": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -5372,6 +5826,39 @@
                 "id": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
+                  "nullable": false
+                },
+                "intervalDays": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lastRating": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lastReviewedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "nextReviewAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "reviewCount": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
                   "nullable": false
                 },
                 "subject": {
@@ -5425,6 +5912,15 @@
                   ],
                   "name": "StudyCard_userId_idx_a489d58a",
                   "prefix": "StudyCard_userId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId",
+                    "nextReviewAt"
+                  ],
+                  "name": "StudyCard_userId_nextReviewAt_idx_d8d71f0a",
+                  "prefix": "StudyCard_userId_nextReviewAt_idx",
                   "unique": false
                 },
                 {
@@ -6069,6 +6565,14 @@
                 "SKIPPED"
               ]
             },
+            "QuestionReviewStatus": {
+              "kind": "valueSet",
+              "values": [
+                "DRAFT",
+                "APPROVED",
+                "ARCHIVED"
+              ]
+            },
             "QuestionType": {
               "kind": "valueSet",
               "values": [
@@ -6098,10 +6602,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "950f5b1bbd7028915d8c9772db39543764ee6b1be22ff835cf548c254f4fa7f6"
+    "storageHash": "64e1122326332f0b4bb343b12bdf5035b62d8887ddbcc837a999ca2309877054"
   },
   "execution": {
-    "executionHash": "ed771052a86acb3939cf0718bf6eacffca067ab0df37ddd91c1f236852db7b83",
+    "executionHash": "1c7cc38d5d656d1748941f136f1e3aa6be3bf1b5db8046644929a7e287b87f2a",
     "mutations": {
       "defaults": [
         {
@@ -6401,6 +6905,32 @@
           "ref": {
             "entry": "Session",
             "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "StudyActivity",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "StudyActivity",
+            "field": "updatedAt",
             "namespace": "public"
           }
         },
