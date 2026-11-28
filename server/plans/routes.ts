@@ -32,13 +32,12 @@ router.get("/me", async (req, res) => {
     const currentSubscription = subscription;
     const trialEndsAt = new Date(currentSubscription.trialEndsAt as any);
     const trialActive = currentSubscription.status === "TRIALING" && trialEndsAt.getTime() > Date.now();
-    if (subscription.status === "TRIALING" && !trialActive) {
-      const expiredSubscription = await db.orm.public.Subscription.where({ id: currentSubscription.id }).update({
+    let activeSubscription = currentSubscription;
+    if (currentSubscription.status === "TRIALING" && !trialActive) {
+      activeSubscription = await db.orm.public.Subscription.where({ id: currentSubscription.id }).update({
         plan: "FREE", status: "EXPIRED", updatedAt: Temporal.Now.instant(),
       });
     }
-
-    const activeSubscription = trialActive ? currentSubscription : (typeof expiredSubscription === "undefined" ? currentSubscription : expiredSubscription);
     const activeTrialEnd = new Date(activeSubscription.trialEndsAt as any);
     const daysRemaining = trialActive
       ? Math.max(0, Math.ceil((activeTrialEnd.getTime() - Date.now()) / 86400000))
