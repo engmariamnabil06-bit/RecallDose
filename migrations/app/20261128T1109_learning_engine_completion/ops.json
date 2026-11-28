@@ -1,0 +1,788 @@
+[
+  {
+    "id": "table.StudyActivity",
+    "label": "Create table \"StudyActivity\"",
+    "summary": "Creates table \"StudyActivity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "StudyActivity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"StudyActivity\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyActivity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"StudyActivity\"",
+        "sql": "CREATE TABLE \"public\".\"StudyActivity\" (\n  \"activityDate\" text NOT NULL,\n  \"correctAnswers\" int4 DEFAULT 0 NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"questionsAnswered\" int4 DEFAULT 0 NOT NULL,\n  \"sessionsCompleted\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  \"wrongAnswers\" int4 DEFAULT 0 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"StudyActivity\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyActivity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Question.reviewStatus",
+    "label": "Add column \"reviewStatus\" to \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "reviewStatus",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reviewStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "reviewStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reviewStatus\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD COLUMN \"reviewStatus\" text DEFAULT 'APPROVED' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reviewStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "reviewStatus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Question.reviewedAt",
+    "label": "Add column \"reviewedAt\" to \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "reviewedAt",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reviewedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "reviewedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reviewedAt\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD COLUMN \"reviewedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reviewedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "reviewedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Question.reviewedByUserId",
+    "label": "Add column \"reviewedByUserId\" to \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "reviewedByUserId",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reviewedByUserId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "reviewedByUserId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reviewedByUserId\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD COLUMN \"reviewedByUserId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reviewedByUserId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "reviewedByUserId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Question.sourcePage",
+    "label": "Add column \"sourcePage\" to \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sourcePage",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sourcePage\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "sourcePage"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"sourcePage\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD COLUMN \"sourcePage\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sourcePage\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "sourcePage"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Question.sourceReference",
+    "label": "Add column \"sourceReference\" to \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sourceReference",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sourceReference\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "sourceReference"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"sourceReference\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD COLUMN \"sourceReference\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sourceReference\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "sourceReference"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Question.sourceTitle",
+    "label": "Add column \"sourceTitle\" to \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sourceTitle",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sourceTitle\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "sourceTitle"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"sourceTitle\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD COLUMN \"sourceTitle\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sourceTitle\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Question",
+          "sourceTitle"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.StudyCard.easeFactor",
+    "label": "Add column \"easeFactor\" to \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "easeFactor",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"easeFactor\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "easeFactor"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"easeFactor\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\" ADD COLUMN \"easeFactor\" float8 DEFAULT 2.5 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"easeFactor\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "easeFactor"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.StudyCard.intervalDays",
+    "label": "Add column \"intervalDays\" to \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "intervalDays",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"intervalDays\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "intervalDays"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"intervalDays\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\" ADD COLUMN \"intervalDays\" int4 DEFAULT 0 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"intervalDays\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "intervalDays"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.StudyCard.lastRating",
+    "label": "Add column \"lastRating\" to \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastRating",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastRating\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "lastRating"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastRating\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\" ADD COLUMN \"lastRating\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastRating\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "lastRating"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.StudyCard.lastReviewedAt",
+    "label": "Add column \"lastReviewedAt\" to \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lastReviewedAt",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lastReviewedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "lastReviewedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lastReviewedAt\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\" ADD COLUMN \"lastReviewedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lastReviewedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "lastReviewedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.StudyCard.nextReviewAt",
+    "label": "Add column \"nextReviewAt\" to \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "nextReviewAt",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"nextReviewAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "nextReviewAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"nextReviewAt\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\" ADD COLUMN \"nextReviewAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"nextReviewAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "nextReviewAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.StudyCard.reviewCount",
+    "label": "Add column \"reviewCount\" to \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "reviewCount",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"reviewCount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "reviewCount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"reviewCount\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\" ADD COLUMN \"reviewCount\" int4 DEFAULT 0 NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"reviewCount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "StudyCard",
+          "reviewCount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Question.Question_reviewStatus_check_795300dc",
+    "label": "Add check constraint \"Question_reviewStatus_check_795300dc\" on \"Question\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Question_reviewStatus_check_795300dc",
+        "table": "Question"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Question_reviewStatus_check_795300dc\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Question_reviewStatus_check_795300dc",
+          "public",
+          "\"public\".\"Question\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Question_reviewStatus_check_795300dc\"",
+        "sql": "ALTER TABLE \"public\".\"Question\" ADD CONSTRAINT \"Question_reviewStatus_check_795300dc\" CHECK (\"reviewStatus\" IN ('DRAFT', 'APPROVED', 'ARCHIVED'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Question_reviewStatus_check_795300dc\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Question_reviewStatus_check_795300dc",
+          "public",
+          "\"public\".\"Question\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.StudyActivity.StudyActivity_userId_activityDate_key",
+    "label": "Add unique constraint on \"StudyActivity\" (userId, activityDate)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "StudyActivity_userId_activityDate_key",
+        "table": "StudyActivity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"StudyActivity_userId_activityDate_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyActivity_userId_activityDate_key",
+          "public",
+          "\"public\".\"StudyActivity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"StudyActivity_userId_activityDate_key\"",
+        "sql": "ALTER TABLE \"public\".\"StudyActivity\" ADD CONSTRAINT \"StudyActivity_userId_activityDate_key\" UNIQUE (\"userId\", \"activityDate\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"StudyActivity_userId_activityDate_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyActivity_userId_activityDate_key",
+          "public",
+          "\"public\".\"StudyActivity\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyActivity.StudyActivity_userId_activityDate_idx_5e9acfee",
+    "label": "Create index \"StudyActivity_userId_activityDate_idx_5e9acfee\" on \"StudyActivity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyActivity_userId_activityDate_idx_5e9acfee",
+        "table": "StudyActivity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyActivity_userId_activityDate_idx_5e9acfee\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyActivity_userId_activityDate_idx_5e9acfee\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyActivity_userId_activityDate_idx_5e9acfee\"",
+        "sql": "CREATE INDEX \"StudyActivity_userId_activityDate_idx_5e9acfee\" ON \"public\".\"StudyActivity\" (\"userId\", \"activityDate\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyActivity_userId_activityDate_idx_5e9acfee\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyActivity_userId_activityDate_idx_5e9acfee\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyActivity.StudyActivity_userId_idx_a489d58a",
+    "label": "Create index \"StudyActivity_userId_idx_a489d58a\" on \"StudyActivity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyActivity_userId_idx_a489d58a",
+        "table": "StudyActivity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyActivity_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyActivity_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyActivity_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"StudyActivity_userId_idx_a489d58a\" ON \"public\".\"StudyActivity\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyActivity_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyActivity_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyCard.StudyCard_userId_nextReviewAt_idx_d8d71f0a",
+    "label": "Create index \"StudyCard_userId_nextReviewAt_idx_d8d71f0a\" on \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyCard_userId_nextReviewAt_idx_d8d71f0a",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyCard_userId_nextReviewAt_idx_d8d71f0a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_nextReviewAt_idx_d8d71f0a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyCard_userId_nextReviewAt_idx_d8d71f0a\"",
+        "sql": "CREATE INDEX \"StudyCard_userId_nextReviewAt_idx_d8d71f0a\" ON \"public\".\"StudyCard\" (\"userId\", \"nextReviewAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyCard_userId_nextReviewAt_idx_d8d71f0a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_nextReviewAt_idx_d8d71f0a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.StudyActivity.StudyActivity_userId_fkey",
+    "label": "Add foreign key \"StudyActivity_userId_fkey\" on \"StudyActivity\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "StudyActivity_userId_fkey",
+        "table": "StudyActivity"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"StudyActivity_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyActivity_userId_fkey",
+          "public",
+          "\"public\".\"StudyActivity\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"StudyActivity_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"StudyActivity\"\nADD CONSTRAINT \"StudyActivity_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"StudyActivity_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyActivity_userId_fkey",
+          "public",
+          "\"public\".\"StudyActivity\""
+        ]
+      }
+    ]
+  }
+]
