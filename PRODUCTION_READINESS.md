@@ -114,3 +114,6 @@ This is not a claim that the live database migration has been applied, live AI p
 - Oral exam conversation currently lives in browser state and is not yet persisted as a long-term learner record. Faculty review is recommended for examiner quality and scoring consistency.
 - Page citations depend on extraction markers. Scanned image OCR may not have reliable page markers; never invent page numbers. Scanned-PDF page-by-page OCR remains future work.
 - The academic directory is link-out only. EnterMedSchool.org identifies its .org materials as non-commercial with attribution required. Do not import/re-host its questions in a commercial RecallDose tier without confirming a compatible license or written permission. DrillMed is external practice only; no republication rights are assumed. NCBI Bookshelf and PMC reuse depends on each item's rights/license.
+
+
+Implementation commit: `c964b07b316efee879640efaac8870e1df0a95cd` adds the advanced tutor and academic resource directory. CI validation is pending on this branch head.
