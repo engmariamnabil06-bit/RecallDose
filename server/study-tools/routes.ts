@@ -262,6 +262,48 @@ router.post("/cards", async (req, res) => {
   }
 });
 
+
+router.post("/cards/:id/review", async (req, res) => {
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in." });
+  const rating = req.body?.rating;
+  if (!["again", "hard", "easy"].includes(rating)) {
+    return res.status(400).json({ message: "Choose again, hard, or easy." });
+  }
+  try {
+    const card = await db.orm.public.StudyCard.where({ id: req.params.id, userId: user.id }).first();
+    if (!card) return res.status(404).json({ message: "Flashcard not found." });
+    const now = new Date();
+    const oldEase = Number(card.easeFactor || 2.5);
+    const oldInterval = Number(card.intervalDays || 0);
+    let easeFactor = oldEase;
+    let intervalDays = 1;
+    if (rating === "again") {
+      easeFactor = Math.max(1.3, oldEase - 0.2);
+      intervalDays = 1;
+    } else if (rating === "hard") {
+      easeFactor = Math.max(1.3, oldEase - 0.15);
+      intervalDays = Math.max(1, Math.round((oldInterval || 1) * 1.2));
+    } else {
+      easeFactor = Math.min(3.2, oldEase + 0.15);
+      intervalDays = card.reviewCount === 0 ? 3 : Math.max(2, Math.round((oldInterval || 1) * oldEase));
+    }
+    const nextReviewAt = new Date(now.getTime() + intervalDays * 86_400_000);
+    const updated = await db.orm.public.StudyCard.where({ id: card.id, userId: user.id }).update({
+      reviewCount: card.reviewCount + 1,
+      easeFactor,
+      intervalDays,
+      lastRating: rating,
+      lastReviewedAt: now,
+      nextReviewAt,
+    });
+    return res.json({ card: updated, nextReviewAt, intervalDays, rating });
+  } catch (error) {
+    console.error("review flashcard", error);
+    return res.status(500).json({ message: "Could not save this review." });
+  }
+});
+
 router.delete("/cards/:id", async (req, res) => {
   const user = await userFor(req);
   if (!user) return res.status(401).json({ message: "Please sign in." });

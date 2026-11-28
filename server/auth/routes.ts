@@ -215,6 +215,76 @@ router.post("/logout", async (req, res) => {
   }
 });
 
+
+router.get("/profile", async (req, res) => {
+  try {
+    const token = getSessionTokenFromCookie(req.headers.cookie);
+    const user = token ? await getSessionUser(token) : null;
+    if (!user) return res.status(401).json({ message: "Please sign in." });
+    const profile = await db.orm.public.Profile.where({ userId: user.id }).first();
+    return res.json({
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, emailVerified: user.emailVerified },
+      profile: profile ? {
+        university: profile.university,
+        faculty: profile.faculty,
+        year: profile.year,
+        specialization: profile.specialization,
+      } : { university: "", faculty: "", year: "", specialization: "" },
+    });
+  } catch (error) {
+    console.error("GET /api/auth/profile error:", error);
+    return res.status(500).json({ message: "Could not load your profile." });
+  }
+});
+
+router.put("/profile", async (req, res) => {
+  try {
+    const token = getSessionTokenFromCookie(req.headers.cookie);
+    const user = token ? await getSessionUser(token) : null;
+    if (!user) return res.status(401).json({ message: "Please sign in." });
+    const body = req.body ?? {};
+    const fields = ["firstName", "lastName", "university", "faculty", "year", "specialization"] as const;
+    for (const field of fields) {
+      if (body[field] !== undefined && (typeof body[field] !== "string" || body[field].length > 160)) {
+        return res.status(400).json({ message: "Profile fields must be text with a maximum of 160 characters." });
+      }
+    }
+    const firstName = typeof body.firstName === "string" ? body.firstName.trim() : user.firstName;
+    const lastName = typeof body.lastName === "string" ? body.lastName.trim() : user.lastName;
+    if (!firstName || !lastName || firstName.length > 80 || lastName.length > 80) {
+      return res.status(400).json({ message: "First and last name are required (maximum 80 characters each)." });
+    }
+    const profileValues = {
+      university: typeof body.university === "string" ? body.university.trim() : "",
+      faculty: typeof body.faculty === "string" ? body.faculty.trim() : "",
+      year: typeof body.year === "string" ? body.year.trim() : "",
+      specialization: typeof body.specialization === "string" ? body.specialization.trim() : "",
+    };
+    const existing = await db.orm.public.Profile.where({ userId: user.id }).first();
+    if (existing) {
+      await db.orm.public.Profile.where({ id: existing.id }).update({
+        university: profileValues.university || null,
+        faculty: profileValues.faculty || null,
+        year: profileValues.year || null,
+        specialization: profileValues.specialization || null,
+      });
+    } else {
+      await db.orm.public.Profile.create({
+        userId: user.id,
+        university: profileValues.university || null,
+        faculty: profileValues.faculty || null,
+        year: profileValues.year || null,
+        specialization: profileValues.specialization || null,
+      });
+    }
+    await db.orm.public.User.where({ id: user.id }).update({ firstName, lastName });
+    return res.json({ message: "Profile saved.", user: { id: user.id, email: user.email, firstName, lastName, role: user.role, emailVerified: user.emailVerified }, profile: profileValues });
+  } catch (error) {
+    console.error("PUT /api/auth/profile error:", error);
+    return res.status(500).json({ message: "Could not save your profile. Please try again." });
+  }
+});
+
 router.get("/me", async (req, res) => {
   try {
     const token = getSessionTokenFromCookie(req.headers.cookie);

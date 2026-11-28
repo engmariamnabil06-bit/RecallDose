@@ -39,3 +39,17 @@ This document distinguishes current implementation from planned product scope.
 ## Verification note
 
 No successful full build is claimed. Install dependencies, run `npm run build` and `npm run typecheck:server`, then resolve any errors before deployment.
+
+
+## Learning-engine completion branch — 2026-11-28
+
+- Added per-account daily activity records and a current streak calculation; each saved recall or exam answer contributes to the day record.
+- Exam answers now update the same topic progress and weak-spot analytics as recall answers.
+- Dashboard subject cards and headline counts are based on saved account data rather than fabricated demo counters.
+- Recall Twin now provides transparent risk-ranked study actions based on accuracy, repeated mistakes and elapsed time. It is a heuristic, not a validated memory model or exam predictor.
+- Pharma Memory Lab reads the user's persisted Study Cards and saves ratings/next-review dates through an authenticated endpoint.
+- Image OCR supports English, Arabic or both; scanned-PDF OCR is still not included (PDF text extraction only).
+- Added an administrator-only question authoring and review queue. Newly authored questions remain inactive drafts until a source, explanation and exactly one correct answer are checked and approved.
+- Added editable learner profile fields for name, institution, faculty, academic year and specialization.
+
+Validation still required after this branch is pushed: Prisma contract emission/migration CI, frontend production build and server typecheck. The Neon migration has not been applied. Admin account promotion remains a trusted database operation. File bytes/extracted text still use local disk; production needs configured private durable storage, backups and malware scanning. AI provider availability depends on server credentials, quotas and provider terms; source-grounded medical generation and distributed rate limiting remain future production-hardening tasks.

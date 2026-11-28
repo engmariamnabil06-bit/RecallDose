@@ -13,11 +13,11 @@ import "./dashboard-refresh.css";
 
 type User = { id: string; email: string; firstName: string; lastName: string; role: string; emailVerified: boolean };
 type DashboardData = {
-  stats: { recallStrength: number; questionsRecalled: number; correctAnswers: number; wrongAnswers: number; weakSpots: number; dayStreak: number };
+  stats: { recallStrength: number; questionsRecalled: number; correctAnswers: number; wrongAnswers: number; weakSpots: number; dayStreak: number; flashcards: number; notes: number; subjectsTracked: number; availableQuestions: number };
   mistakes: Array<{ id: string; questionId: string; type: string; selectedAnswer: string | null; correctAnswer: string | null; reviewCount: number; resolved: boolean; createdAt: string }>;
   subjects: Array<{ subject: string; questionsSolved: number; correctAnswers: number; wrongAnswers: number; accuracy: number }>;
   weakestSubject: { subject: string; questionsSolved: number; correctAnswers: number; wrongAnswers: number; accuracy: number } | null;
-  sessions: { total: number; completed: number };
+  sessions: { total: number; completed: number; completedToday: number };
 };
 
 const navGroups = [
@@ -42,15 +42,6 @@ const motivationalLines = [
   "You’re not behind. You’re building.",
   "One day, your patients will thank you.",
   "Small steps today. Strong knowledge tomorrow.",
-];
-
-const subjectCards = [
-  { name: "Anatomy", topics: "12 topics", icon: <Stethoscope />, color: "violet" },
-  { name: "Physiology", topics: "11 topics", icon: <HeartPulse />, color: "pink" },
-  { name: "Pharmacology", topics: "14 topics", icon: <Pill />, color: "purple" },
-  { name: "Biochemistry", topics: "10 topics", icon: <Dna />, color: "blue" },
-  { name: "Pathology", topics: "8 topics", icon: <Microscope />, color: "lavender" },
-  { name: "Microbiology", topics: "9 topics", icon: <FlaskConical />, color: "cyan" },
 ];
 
 function useTypewriterOnce(text: string, speed = 115) {
@@ -101,9 +92,9 @@ export default function Dashboard() {
   const [searchText, setSearchText] = useState("");
   const [darkGlow, setDarkGlow] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const typedMotivation = useTypewriter(motivationalLines, 48, 2200);
-  const typedGreeting = useTypewriterOnce("hey future doctor", 125);
   const greetingName = user?.firstName || "Future Doctor";
+  const typedGreeting = useTypewriterOnce(`hey ${greetingName}`, 125);
+  const typedMotivation = useTypewriter(motivationalLines, 48, 2200);
 
   useEffect(() => {
     let active = true;
@@ -136,19 +127,20 @@ export default function Dashboard() {
     finally { setSigningOut(false); }
   };
 
-  const filteredSubjects = useMemo(() => subjectCards.filter((s) => s.name.toLowerCase().includes(searchText.toLowerCase())), [searchText]);
+  const filteredSubjects = useMemo(() => (dashboard?.subjects || []).filter((item) => item.subject.toLowerCase().includes(searchText.toLowerCase())), [dashboard, searchText]);
 
   if (loading) return <div className="rd-loading"><div className="rd-logo">R</div><span>Preparing your recall space…</span><div className="rd-loading-line" /></div>;
   if (!user || !dashboard) return <div className="rd-loading"><div className="rd-logo">R</div><h2>We couldn’t load your recall space</h2><p>{error || "Please sign in and try again."}</p><Link className="rd-primary-btn" to="/login">Back to login <ArrowRight size={16}/></Link></div>;
 
   const stats = dashboard.stats;
   const initials = `${user.firstName?.[0] || "R"}${user.lastName?.[0] || "D"}`.toUpperCase();
-  const completedToday = dashboard.sessions?.completed || 0;
-  const tasks = [
-    { label: "Anatomy: Heart", progress: Math.min(stats.recallStrength, 100), count: `${Math.round(stats.recallStrength / 5)}/20`, done: stats.recallStrength >= 80 },
-    { label: "Pharmacology: Antibiotics", progress: Math.min(Math.round((stats.correctAnswers / Math.max(1, stats.questionsRecalled)) * 100), 100), count: `${Math.min(stats.correctAnswers, 15)}/15`, done: false },
-    { label: "Biochemistry: Glycolysis", progress: Math.min(Math.round((stats.questionsRecalled / 10) * 10), 100), count: `${Math.min(stats.questionsRecalled, 10)}/10`, done: false },
-  ];
+  const completedToday = dashboard.sessions?.completedToday || 0;
+  const tasks = dashboard.subjects.slice(0, 3).map((item) => ({
+    label: item.subject,
+    progress: Math.max(0, Math.min(100, item.accuracy)),
+    count: `${item.questionsSolved} answered`,
+    done: item.accuracy >= 85 && item.questionsSolved >= 5,
+  }));
 
   return <div className={`rd-app ${darkGlow ? "rd-glow-on" : "rd-glow-off"}`}>
     <aside className={`rd-sidebar ${mobileNav ? "rd-sidebar-open" : ""}`}>
@@ -180,22 +172,17 @@ export default function Dashboard() {
         </section>
 
         <section className="rd-stats-grid" aria-label="Learning statistics">
-          <Link to="/pharma-memory" className="rd-stat-card"><span className="rd-stat-icon icon-purple"><Pill/></span><div className="rd-stat-content"><span className="rd-stat-value">{Math.max(100, stats.questionsRecalled)}</span><span className="rd-stat-label">Drugs to remember</span><p>Names, mechanisms, indications, side effects…</p></div><ArrowRight className="rd-stat-arrow" size={17}/></Link>
-          <Link to="/progress" className="rd-stat-card"><span className="rd-stat-icon icon-blue"><BookOpen/></span><div className="rd-stat-content"><span className="rd-stat-value">{Math.max(1000, stats.correctAnswers)}</span><span className="rd-stat-label">Facts to connect</span><p>Concepts that make sense when they connect.</p></div><ArrowRight className="rd-stat-arrow" size={17}/></Link>
-          <Link to="/recall" className="rd-stat-card"><span className="rd-stat-icon icon-pink"><Atom/></span><div className="rd-stat-content"><span className="rd-stat-value">∞</span><span className="rd-stat-label">Questions to practice</span><p>Because knowing isn’t the same as recalling.</p></div><ArrowRight className="rd-stat-arrow" size={17}/></Link>
+          <Link to="/pharma-memory" className="rd-stat-card"><span className="rd-stat-icon icon-purple"><Pill/></span><div className="rd-stat-content"><span className="rd-stat-value">{stats.flashcards}</span><span className="rd-stat-label">Saved flashcards</span><p>Cards saved to your personal study workspace.</p></div><ArrowRight className="rd-stat-arrow" size={17}/></Link>
+          <Link to="/progress" className="rd-stat-card"><span className="rd-stat-icon icon-blue"><BookOpen/></span><div className="rd-stat-content"><span className="rd-stat-value">{stats.subjectsTracked}</span><span className="rd-stat-label">Subjects tracked</span><p>Subjects with recorded answers and progress.</p></div><ArrowRight className="rd-stat-arrow" size={17}/></Link>
+          <Link to="/recall" className="rd-stat-card"><span className="rd-stat-icon icon-pink"><Atom/></span><div className="rd-stat-content"><span className="rd-stat-value">{stats.availableQuestions}</span><span className="rd-stat-label">Available questions</span><p>Active questions currently in your learning bank.</p></div><ArrowRight className="rd-stat-arrow" size={17}/></Link>
         </section>
 
-        <section className="rd-work-grid"><div className="rd-section-block"><div className="rd-section-title"><div><span className="rd-section-eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Continue learning</h2></div><Link to="/curriculum">View curriculum <ArrowRight size={14}/></Link></div><div className="rd-continue-grid">{[
-          { title: "Cardiac Cycle", subject: "Physiology", pct: Math.min(100, stats.recallStrength), icon: <HeartPulse/>, tint: "pink", to: "/curriculum" },
-          { title: "Beta Blockers", subject: "Pharmacology", pct: Math.min(100, stats.correctAnswers * 4), icon: <Pill/>, tint: "purple", to: "/pharma-memory" },
-          { title: "Neurons", subject: "Anatomy", pct: Math.min(100, stats.questionsRecalled * 3), icon: <Brain/>, tint: "blue", to: "/curriculum" },
-          { title: "Glycolysis", subject: "Biochemistry", pct: Math.min(100, stats.correctAnswers * 2), icon: <Dna/>, tint: "cyan", to: "/curriculum" },
-        ].map((item) => <Link className="rd-continue-card" to={item.to} key={item.title}><div className="rd-continue-copy"><strong>{item.title}</strong><span>{item.subject}</span><div className="rd-progress-track"><span style={{ width: `${item.pct}%` }}/></div><small>{item.pct}% reviewed</small></div><span className={`rd-continue-art ${item.tint}`}>{item.icon}</span></Link>)}</div></div>
+        <section className="rd-work-grid"><div className="rd-section-block"><div className="rd-section-title"><div><span className="rd-section-eyebrow">PICK UP WHERE YOU LEFT OFF</span><h2>Continue learning</h2></div><Link to="/curriculum">View curriculum <ArrowRight size={14}/></Link></div><div className="rd-continue-grid">{dashboard.subjects.slice(0,4).map((item) => <Link className="rd-continue-card" to="/curriculum" key={item.subject}><div className="rd-continue-copy"><strong>{item.subject}</strong><span>{item.questionsSolved} questions answered</span><div className="rd-progress-track"><span style={{ width: `${Math.max(0,Math.min(100,item.accuracy))}%` }}/></div><small>{item.accuracy}% accuracy</small></div><span className="rd-continue-art blue"><BookOpen/></span></Link>)}{dashboard.subjects.length===0 && <p className="rd-no-results">Your learning topics will appear here after your first saved answer.</p>}</div></div>
           <div className="rd-section-block rd-quick-block"><div className="rd-section-title"><div><span className="rd-section-eyebrow">ONE CLICK AWAY</span><h2>Quick actions</h2></div></div><div className="rd-quick-grid">{[
             { label: "AI Tutor", icon: <MessageSquareText/>, to: "/ai-tutor" }, { label: "Exam Simulator", icon: <ClipboardList/>, to: "/exams" }, { label: "Upload Notes", icon: <CloudUpload/>, to: "/study-tools" }, { label: "Mistake Bank", icon: <Target/>, to: "/mistakes" }, { label: "Review Schedule", icon: <CalendarDays/>, to: "/review-schedule" }, { label: "Flashcards", icon: <BookMarked/>, to: "/study-tools" },
           ].map((item) => <Link to={item.to} className="rd-quick-action" key={item.label}><span>{item.icon}</span>{item.label}<ArrowRight className="rd-quick-arrow" size={14}/></Link>)}</div></div></section>
 
-        <section className="rd-bottom-grid"><div className="rd-section-block"><div className="rd-section-title"><div><span className="rd-section-eyebrow">YOUR LEARNING MAP</span><h2>Explore subjects</h2></div><Link to="/curriculum">View all <ArrowRight size={14}/></Link></div><div className="rd-subject-grid">{filteredSubjects.map((subject) => <Link to="/curriculum" className="rd-subject-card" key={subject.name}><span className={`rd-subject-art ${subject.color}`}>{subject.icon}</span><strong>{subject.name}</strong><small>{subject.topics}</small></Link>)}{filteredSubjects.length === 0 && <p className="rd-no-results">No matching subjects. Try another search.</p>}</div></div>
+        <section className="rd-bottom-grid"><div className="rd-section-block"><div className="rd-section-title"><div><span className="rd-section-eyebrow">YOUR LEARNING MAP</span><h2>Explore subjects</h2></div><Link to="/curriculum">View all <ArrowRight size={14}/></Link></div><div className="rd-subject-grid">{filteredSubjects.map((subject) => <Link to="/curriculum" className="rd-subject-card" key={subject.subject}><span className="rd-subject-art blue"><BookOpen/></span><strong>{subject.subject}</strong><small>{subject.questionsSolved} answered · {subject.accuracy}% accuracy</small></Link>)}{filteredSubjects.length === 0 && <p className="rd-no-results">No tracked subjects yet. Start a recall session to build your learning map.</p>}</div></div>
           <div className="rd-section-block rd-progress-panel"><div className="rd-section-title"><div><span className="rd-section-eyebrow">YOUR MOMENTUM</span><h2>Progress snapshot</h2></div><Link to="/progress">Details <ArrowRight size={14}/></Link></div><div className="rd-momentum-score"><div className="rd-ring" style={{ "--score": `${stats.recallStrength}%` } as React.CSSProperties}><div><strong>{stats.recallStrength}%</strong><small>recall strength</small></div></div><div className="rd-momentum-copy"><strong>{stats.dayStreak} day streak <TrendingUp size={16}/></strong><p>Consistency beats cramming. Keep your rhythm going.</p><Link to="/recall">Practice now <ArrowRight size={14}/></Link></div></div><div className="rd-progress-facts"><span><CheckCircle2 size={15}/> {stats.correctAnswers} correct answers</span><span><Target size={15}/> {stats.weakSpots} topics to revisit</span></div></div></section>
 
         <footer className="rd-quote"><span className="rd-quote-mark">“</span><div><strong>Discipline today, save lives tomorrow.</strong><p>You’re not just studying for exams, you’re preparing to be someone’s hope.</p></div><span className="rd-quote-art"><HeartPulse/></span></footer>

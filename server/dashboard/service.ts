@@ -1,4 +1,5 @@
 import { db } from "../db.js";
+import { calculateCurrentStreak, getActivityDateKey } from "../activity/service.js";
 
 export async function getDashboardData(userId: string) {
   const progressRecords =
@@ -23,6 +24,11 @@ export async function getDashboardData(userId: string) {
 
   const questionRecords =
     await db.orm.public.Question.all();
+
+  const activities = await db.orm.public.StudyActivity.where({ userId }).all();
+  const studyCards = await db.orm.public.StudyCard.where({ userId }).all();
+  const studyNotes = await db.orm.public.StudyNote.where({ userId }).all();
+  const todayActivity = activities.find((activity) => activity.activityDate === getActivityDateKey());
 
   const questionById = new Map(
     questionRecords.map((question) => [question.id, question] as const)
@@ -192,7 +198,11 @@ export async function getDashboardData(userId: string) {
 
       // A real streak requires a per-day activity history;
       // Progress stores only each topic's latest activity date.
-      dayStreak: 0,
+      dayStreak: calculateCurrentStreak(activities.map((activity) => activity.activityDate)),
+      flashcards: studyCards.length,
+      notes: studyNotes.length,
+      subjectsTracked: subjectPerformance.length,
+      availableQuestions: questionRecords.filter((question) => question.isActive).length,
     },
 
     mistakes: recentMistakes,
@@ -218,6 +228,12 @@ export async function getDashboardData(userId: string) {
     sessions: {
       total: sessions.length,
       completed: completedSessions.length,
+      completedToday: todayActivity?.sessionsCompleted ?? 0,
     },
+    activity: activities.sort((a, b) => b.activityDate.localeCompare(a.activityDate)).slice(0, 30).map((activity) => ({
+      date: activity.activityDate, questionsAnswered: activity.questionsAnswered,
+      correctAnswers: activity.correctAnswers, wrongAnswers: activity.wrongAnswers,
+      sessionsCompleted: activity.sessionsCompleted,
+    })),
   };
 }

@@ -32,6 +32,7 @@ import AITutor from "./pages/AITutor";
 import CurriculumExplorer from "./pages/CurriculumExplorer";
 import StudyTools from "./pages/StudyTools";
 import UploadAndOCR from "./pages/UploadAndOCR";
+import AdminQuestionBank from "./pages/AdminQuestionBank";
 import {
   DailyDosePage,
   ExamsPage,
@@ -98,6 +99,7 @@ function App() {
         <Route path="/ai-tutor" element={<ProtectedRoute><AITutor /></ProtectedRoute>} />
         <Route path="/study-tools" element={<ProtectedRoute><StudyTools /></ProtectedRoute>} />
         <Route path="/upload-ocr" element={<ProtectedRoute><UploadAndOCR /></ProtectedRoute>} />
+        <Route path="/admin/questions" element={<ProtectedRoute><AdminQuestionBank /></ProtectedRoute>} />
 
         <Route
           path="/dashboard"

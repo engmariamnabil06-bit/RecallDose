@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -390,45 +390,81 @@ export function RecallTwinPage() {
 }
 
 export function ProfilePage() {
-  const { data, loading, error } = useApiData<{ user: User }>("/api/auth/me");
+  type ProfilePayload = {
+    user: User;
+    profile: { university: string; faculty: string; year: string; specialization: string };
+  };
+  const { data, loading, error } = useApiData<ProfilePayload>("/api/auth/profile");
   const navigate = useNavigate();
+  const [form, setForm] = useState({ firstName: "", lastName: "", university: "", faculty: "", year: "", specialization: "" });
+  const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    if (!data) return;
+    setForm({
+      firstName: data.user.firstName || "",
+      lastName: data.user.lastName || "",
+      university: data.profile.university || "",
+      faculty: data.profile.faculty || "",
+      year: data.profile.year || "",
+      specialization: data.profile.specialization || "",
+    });
+  }, [data]);
+
+  async function saveProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true); setMessage(""); setActionError("");
+    try {
+      const response = await fetch(apiUrl("/api/auth/profile"), {
+        method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "Could not save your profile.");
+      setMessage(payload.message || "Profile saved.");
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : "Could not save your profile.");
+    } finally { setSaving(false); }
+  }
 
   async function signOut() {
-    setSigningOut(true);
-    setSignOutError(null);
+    setSigningOut(true); setActionError("");
     try {
       const response = await fetch(apiUrl("/api/auth/logout"), { method: "POST", credentials: "include" });
       if (!response.ok) throw new Error("Could not sign out. Please try again.");
       navigate("/login", { replace: true });
     } catch (cause) {
-      setSignOutError(cause instanceof Error ? cause.message : "Could not sign out.");
+      setActionError(cause instanceof Error ? cause.message : "Could not sign out.");
       setSigningOut(false);
     }
   }
 
   return (
-    <PageShell
-      eyebrow="YOUR ACCOUNT"
-      title="Your learning profile."
-      description="Your current account details. Editing academic details and changing passwords are not wired up yet."
-    >
+    <PageShell eyebrow="YOUR ACCOUNT" title="Your learning profile." description="Keep your academic context current so your learning space can be organized around your program.">
       <LoadState loading={loading} error={error} />
-      {data?.user && (
-        <section className="insight-panel insight-profile">
-          <div className="insight-profile-avatar">{`${data.user.firstName[0] ?? ""}${data.user.lastName[0] ?? ""}`.toUpperCase()}</div>
-          <div><h2>{data.user.firstName} {data.user.lastName}</h2><p>{data.user.email}</p></div>
-          <dl>
-            <div><dt>Account role</dt><dd>{data.user.role}</dd></div>
-            <div><dt>Email status</dt><dd>{data.user.emailVerified ? "Verified" : "Not verified"}</dd></div>
-          </dl>
-          {signOutError && <p className="insight-error" role="alert">{signOutError}</p>}
-          <button type="button" className="feature-primary-button" onClick={signOut} disabled={signingOut}>
-            <LogOut size={16} /> {signingOut ? "Signing out…" : "Sign out"}
-          </button>
-        </section>
-      )}
+      {data?.user && <>
+        <form className="insight-panel insight-profile" onSubmit={(event) => void saveProfile(event)}>
+          <div className="insight-profile-avatar">{`${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase()}</div>
+          <div><h2>{form.firstName || data.user.firstName} {form.lastName || data.user.lastName}</h2><p>{data.user.email}</p></div>
+          <div className="insight-profile-form">
+            <label>First name<input required maxLength={80} value={form.firstName} onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))}/></label>
+            <label>Last name<input required maxLength={80} value={form.lastName} onChange={(event) => setForm((current) => ({ ...current, lastName: event.target.value }))}/></label>
+            <label>University / institution<input maxLength={160} value={form.university} onChange={(event) => setForm((current) => ({ ...current, university: event.target.value }))}/></label>
+            <label>Faculty / program<input maxLength={160} value={form.faculty} onChange={(event) => setForm((current) => ({ ...current, faculty: event.target.value }))}/></label>
+            <label>Academic year<input maxLength={160} value={form.year} onChange={(event) => setForm((current) => ({ ...current, year: event.target.value }))}/></label>
+            <label>Specialization<input maxLength={160} value={form.specialization} onChange={(event) => setForm((current) => ({ ...current, specialization: event.target.value }))}/></label>
+          </div>
+          <dl><div><dt>Account role</dt><dd>{data.user.role}</dd></div><div><dt>Email status</dt><dd>{data.user.emailVerified ? "Verified" : "Not verified"}</dd></div></dl>
+          {message && <p className="insight-success" role="status">{message}</p>}
+          {actionError && <p className="insight-error" role="alert">{actionError}</p>}
+          <div className="insight-profile-actions"><button type="submit" className="feature-primary-button" disabled={saving}>{saving ? "Saving…" : "Save profile"}</button><button type="button" className="feature-secondary-button" onClick={() => void signOut()} disabled={signingOut}><LogOut size={16}/>{signingOut ? "Signing out…" : "Sign out"}</button></div>
+        </form>
+        <p className="insight-note">Your login email is read-only here. Email verification and changing the account email need a separate verified-email workflow.</p>
+      </>}
     </PageShell>
   );
 }
@@ -651,3 +687,4 @@ export function ReviewSchedulePage() {
     </PageShell>
   );
 }
+

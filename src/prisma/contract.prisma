@@ -76,6 +76,7 @@ model User {
   fileAccesses  FileAccess[]
   studyNotes    StudyNote[]
   studyCards    StudyCard[]
+  studyActivities StudyActivity[]
 
   @@index([email])
   @@index([role])
@@ -103,12 +104,19 @@ model StudyCard {
   back      String
   subject   String
   createdAt DateTime @default(now())
-  updatedAt temporal.updatedAt()
+  updatedAt      temporal.updatedAt()
+  reviewCount    Int      @default(0)
+  easeFactor     Float    @default(2.5)
+  intervalDays   Int      @default(0)
+  lastRating     String?
+  lastReviewedAt DateTime?
+  nextReviewAt   DateTime?
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, subject])
+  @@index([userId, nextReviewAt])
 }
 
 model Profile {
@@ -155,6 +163,12 @@ enum Difficulty {
   HARD
 }
 
+enum QuestionReviewStatus {
+  DRAFT
+  APPROVED
+  ARCHIVED
+}
+
 enum ExamStatus {
   DRAFT
   PUBLISHED
@@ -184,10 +198,16 @@ model Question {
   explanation String?
   type        QuestionType         @default(SINGLE_CHOICE)
   difficulty  Difficulty           @default(MEDIUM)
-  subject     String?
-  topic       String?
-  topicId     String?
-  isActive    Boolean              @default(true)
+  subject           String?
+  topic             String?
+  topicId           String?
+  sourceTitle       String?
+  sourceReference   String?
+  sourcePage        String?
+  reviewStatus      QuestionReviewStatus @default(APPROVED)
+  reviewedAt        DateTime?
+  reviewedByUserId  String?
+  isActive          Boolean              @default(true)
   createdAt   DateTime             @default(now())
   updatedAt   temporal.updatedAt()
 
@@ -339,6 +359,23 @@ model Mistake {
   @@index([attemptId])
   @@index([recallSessionId])
   @@index([userId, resolved])
+}
+
+model StudyActivity {
+  id                String   @id @default(uuid())
+  userId            String
+  activityDate      String
+  questionsAnswered Int      @default(0)
+  correctAnswers    Int      @default(0)
+  wrongAnswers      Int      @default(0)
+  sessionsCompleted Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         temporal.updatedAt()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityDate])
+  @@index([userId, activityDate])
 }
 
 model Progress {
