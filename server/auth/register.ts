@@ -47,6 +47,18 @@ export async function registerUser(input: RegisterInput) {
     lastName: input.lastName.trim(),
   });
 
+  const trialStartedAt = new Date();
+  const trialEndsAt = new Date(trialStartedAt.getTime() + 60 * 24 * 60 * 60 * 1000);
+
+  // Every new student starts with a full-access 60-day trial.
+  await db.orm.public.Subscription.create({
+    userId: user.id,
+    plan: "FREE_TRIAL",
+    status: "TRIALING",
+    trialStartedAt,
+    trialEndsAt,
+  });
+
   // Create profile
   await db.orm.public.Profile.create({
     userId: user.id,
