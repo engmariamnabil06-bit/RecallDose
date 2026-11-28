@@ -28,7 +28,7 @@ export default function Plans() {
       {plans.map((plan) => {
         const Icon = plan.icon;
         return <article key={plan.id} className={`plans-card ${plan.featured ? "plans-featured" : ""}`}>
-          {plan.featured && <span className="plans-popular">STUDENT FAVORITE</span>}
+          {plan.featured && <span className="plans-popular">30 DAYS FREE</span>}
           <span className="plans-icon"><Icon size={21}/></span>
           <h2>{plan.name}</h2>
           <p className="plans-subtitle">{plan.subtitle}</p>
