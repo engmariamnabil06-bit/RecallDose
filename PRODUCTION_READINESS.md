@@ -86,3 +86,11 @@ Do not label generated questions as authentic Assiut University past-paper quest
 A previous CI run completed successfully for frontend production build, server TypeScript typecheck, Prisma contract generation/planning and source archive packaging. The new exam-reference flow and Plans page changes must pass a fresh CI run before packaging a new ZIP.
 
 This is not a claim that the live database migration has been applied, live AI providers have been tested, payment processing is active, or browser end-to-end tests have passed.
+
+
+## Updated exam difficulty and trial package proposal
+
+- University Exam Coach requires a learner-provided reference (previous exam or lecture extract) and uses it to imitate observable question style and structure while generating original questions. Medium and Hard modes generate from a topic without requiring an upload.
+- The interface asks learners to state faculty/program, subject, topic, question count and desired question types. Verify extraction quality before relying on a generated exam.
+- Membership proposal: 30-day all-features trial, then Student Plus and Pro, with an essential free experience remaining available. This is a product proposal only; trial eligibility, entitlements, AI usage caps and billing are not yet enforced by the backend.
+- Do not activate payment or advertise final prices until plan allowances, provider contracts, webhook verification, renewals, cancellation, refunds and support processes are implemented and tested.
