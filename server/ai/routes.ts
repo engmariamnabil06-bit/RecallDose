@@ -9,6 +9,7 @@ const requestWindows = new Map<string, number[]>();
 const supportedModes = [
   "tutor", "explain", "mnemonic", "anatomy", "pharmacology",
   "simplify", "quiz", "flashcards", "clinical-case", "recall-plan", "compare",
+  "histology", "physiology", "biochemistry", "pathology", "microbiology", "immunology", "anatomy-recall", "exam-coach",
 ] as const;
 type AIMode = typeof supportedModes[number];
 
@@ -52,6 +53,14 @@ function systemPrompt(mode: AIMode, context: string): string {
     "clinical-case": "Create or discuss a fictional educational case. Guide the student through problem representation, relevant mechanisms, differential reasoning and the kinds of investigations or management principles taught in their course. Do not give real-patient advice or present the exercise as a clinical decision.",
     "recall-plan": "Create a realistic study plan using the supplied learner metrics. Prioritize weak or overdue topics, explain why each is prioritized, mix active recall with spaced review, propose small daily sessions and avoid claiming to predict exam results or biological forgetting precisely.",
     compare: "Compare the requested concepts, structures or drug classes in a clear table-like structure: similarities, key differences, mechanism/function, common confusions and a quick memory check. State when a comparison depends on context.",
+    histology: "Teach histology using a slide-first method: tissue type, identifying microscopic features, cell types, arrangement, stains when provided, function and how to distinguish it from look-alikes. Never claim to see a slide unless an image is supplied.",
+    physiology: "Explain physiology as stimulus → mechanism → response → regulation. Define variables, explain feedback loops, connect normal function to common course-level clinical examples and finish with a retrieval check.",
+    biochemistry: "Teach biochemistry by pathway purpose, cellular location, inputs, outputs, key enzymes, regulation and clinical relevance. Use compact pathway maps and memory cues without inventing facts.",
+    pathology: "Teach pathology by definition, cause, pathogenesis, morphology, clinical features and complications as appropriate. Separate general teaching from diagnosis of real patients.",
+    microbiology: "Teach microbiology by organism, morphology, virulence, transmission, pathogenesis, lab identification and prevention concepts. Use accurate comparison tables and recall hooks.",
+    immunology: "Explain immunology through cells, molecules, triggers, sequence of events and regulation. Contrast innate/adaptive and humoral/cell-mediated mechanisms where relevant.",
+    "anatomy-recall": "Create anatomy recall drills: identify the structure, location, relations, attachments, blood supply, innervation and action/function. Use spatial mnemonics and short retrieval prompts.",
+    "exam-coach": "Act as a university exam coach. Generate Assiut University-style practice questions only as clearly labelled simulations unless an authentic, permitted source is supplied. Mix MCQ, true/false, matching, short notes, essay and clinical/application vignettes when suitable. Match requested faculty, year, course, topic and difficulty; include a separate answer key with rationales and never claim generated questions are past-paper originals.",
   };
 
   return `You are Recalldose AI, a careful educational assistant for medical and health-science students. ${tasks[mode]}
@@ -85,7 +94,7 @@ function configuredProviders(): AIProvider[] {
     model: process.env.AI_MODEL || "gemini-2.5-flash",
   });
 
-  for (const slot of ["1", "2"] as const) {
+  for (const slot of ["1", "2", "3", "4", "5"] as const) {
     const apiKey = process.env[`AI_FALLBACK_${slot}_API_KEY`]?.trim();
     if (!apiKey) continue;
     providers.push({
@@ -142,7 +151,7 @@ async function generate(
   for (const provider of ordered) {
     try {
       const answer = await callProvider(provider, mode, prompt, context);
-      return { answer, provider: provider.name, providerId: provider.id, model: provider.model };
+      return { answer };
     } catch (error) {
       lastError = error;
       console.warn(`AI provider unavailable (${provider.name}); checking the next configured model.`);
