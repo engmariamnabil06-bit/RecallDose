@@ -129,9 +129,19 @@ router.get("/history", async (req, res) => {
     const averageScore = completed.length
       ? Math.round(completed.reduce((sum: number, item: any) => sum + Number(item.score || 0), 0) / completed.length)
       : 0;
+    const subjectBuckets = new Map<string, number[]>();
+    for (const item of completed as any[]) {
+      const subject = item.subject || "Uncategorized";
+      subjectBuckets.set(subject, [...(subjectBuckets.get(subject) || []), Number(item.score || 0)]);
+    }
+    const bySubject = [...subjectBuckets.entries()].map(([subject, scores]) => ({
+      subject, exams: scores.length,
+      averageScore: Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length),
+    })).sort((a, b) => a.averageScore - b.averageScore);
     return res.json({ attempts: completed.slice(0, 30), analytics: {
       totalExams: completed.length, averageScore,
       bestScore: completed.length ? Math.max(...completed.map((item: any) => Number(item.score || 0))) : 0,
+      bySubject,
     }});
   } catch (error) {
     console.error("load exam history", error);
