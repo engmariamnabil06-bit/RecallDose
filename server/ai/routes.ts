@@ -40,7 +40,7 @@ function cleanText(value: unknown, max = 8000): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-function systemPrompt(mode: AIMode, context: string): string {
+function systemPrompt(mode: AIMode, context: string, examDifficulty: "university" | "medium" | "hard" = "university"): string {
   const tasks: Record<AIMode, string> = {
     tutor: "Teach the requested medical or health-science concept step by step. Define difficult terms, connect mechanism to function, use an example and finish with one retrieval question.",
     explain: "Explain the learner's mistake kindly. Identify the misconception, explain the correct reasoning, contrast plausible distractors and finish with one check-for-understanding question.",
@@ -60,7 +60,7 @@ function systemPrompt(mode: AIMode, context: string): string {
     microbiology: "Teach microbiology by organism, morphology, virulence, transmission, pathogenesis, lab identification and prevention concepts. Use accurate comparison tables and recall hooks.",
     immunology: "Explain immunology through cells, molecules, triggers, sequence of events and regulation. Contrast innate/adaptive and humoral/cell-mediated mechanisms where relevant.",
     "anatomy-recall": "Create anatomy recall drills: identify the structure, location, relations, attachments, blood supply, innervation and action/function. Use spatial mnemonics and short retrieval prompts.",
-    "exam-coach": "Act as a university exam coach. Generate Assiut University-style practice questions only as clearly labelled simulations unless an authentic, permitted source is supplied. Mix MCQ, true/false, matching, short notes, essay and clinical/application vignettes when suitable. Match requested faculty, year, course, topic and difficulty; include a separate answer key with rationales and never claim generated questions are past-paper originals.",
+    "exam-coach": examDifficulty === "university" ? "Create a fresh university-level practice exam by matching the structure, formats, wording style, depth, topic balance and difficulty observable in the learner-uploaded reference file. Use it as a style template, not a source to copy: write original questions and never claim generated items are authentic past papers. Include a separate answer key and rationales." : examDifficulty === "medium" ? "Create a medium-difficulty practice exam from the topic requested by the learner. No uploaded file is required. Use a balanced mix of recall, understanding and straightforward application. Include an answer key and rationales." : "Create a challenging practice exam from the topic requested by the learner. No uploaded file is required. Emphasize multi-step reasoning, application and connections between concepts, appropriate to the stated academic level. Include an answer key and rationales.",
   };
 
   return `You are Recalldose AI, a careful educational assistant for medical and health-science students. ${tasks[mode]}
@@ -108,7 +108,7 @@ function configuredProviders(): AIProvider[] {
   return providers;
 }
 
-async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, context: string): Promise<string> {
+async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, context: string, examDifficulty: "university" | "medium" | "hard"): Promise<string> {
   const response = await fetch(`${provider.baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${provider.apiKey}` },
@@ -117,7 +117,7 @@ async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, 
       temperature: mode === "mnemonic" ? 0.65 : mode === "quiz" || mode === "flashcards" ? 0.25 : 0.3,
       max_tokens: mode === "quiz" || mode === "flashcards" || mode === "recall-plan" ? 2200 : 1600,
       messages: [
-        { role: "system", content: systemPrompt(mode, context) },
+        { role: "system", content: systemPrompt(mode, context, examDifficulty) },
         { role: "user", content: prompt },
       ],
     }),
@@ -138,14 +138,15 @@ async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, 
 async function generate(
   mode: AIMode,
   prompt: string,
-  context: string
+  context: string,
+  examDifficulty: "university" | "medium" | "hard"
 ): Promise<{ answer: string }> {
   const providers = configuredProviders();
   if (!providers.length) throw new Error("AI_NOT_CONFIGURED");
   let lastError: unknown;
   for (const provider of providers) {
     try {
-      return { answer: await callProvider(provider, mode, prompt, context) };
+      return { answer: await callProvider(provider, mode, prompt, context, examDifficulty) };
     } catch (error) {
       lastError = error;
       console.warn(`AI provider unavailable (${provider.name}); silently trying the next configured provider.`);
@@ -170,12 +171,14 @@ router.post("/chat", async (req, res) => {
   const context = cleanText(req.body?.context, 10000);
   const mode = supportedModes.includes(req.body?.mode) ? req.body.mode as AIMode : "tutor";
   if (prompt.length < 2) return res.status(400).json({ message: "Enter a question or concept to work on." });
-  if (mode === "exam-coach" && context.length < 300) return res.status(400).json({ message: "University-level exam practice requires at least one lecture section or previous exam reference (300 characters minimum). Upload a source or paste the section first." });
+  const rawDifficulty = req.body?.examDifficulty;
+  const examDifficulty = rawDifficulty === "medium" || rawDifficulty === "hard" ? rawDifficulty : "university";
+  if (mode === "exam-coach" && examDifficulty === "university" && context.length < 80) return res.status(400).json({ message: "Upload a previous exam or lecture reference for university-style practice, or choose Medium / Hard for AI-generated questions without a file." });
 
   try {
-    const result = await generate(mode, prompt, context);
+    const result = await generate(mode, prompt, context, examDifficulty);
     return res.json({
-      answer: result.answer, mode,
+      answer: result.answer, mode, examDifficulty: mode === "exam-coach" ? examDifficulty : undefined,
       disclaimer: "For learning only. Verify medical facts with trusted course references; not for patient care.",
     });
   } catch (error) {
