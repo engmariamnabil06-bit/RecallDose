@@ -7,7 +7,7 @@ import {
   HeartPulse, Home, LayoutDashboard, LogOut, Microscope, Moon, Pill,
   Search, Settings, Sparkles, Stethoscope, Target, TrendingUp, UserRound,
   Users, X, Zap, BookMarked, ChartNoAxesCombined, CircleHelp, Clock3,
-  MessageSquareText, ArrowRight, Trophy, FileText, ShieldCheck,
+  MessageSquareText, ArrowRight, Trophy, FileText, ShieldCheck, CreditCard,
 } from "lucide-react";
 import "./dashboard-refresh.css";
 
@@ -129,6 +129,7 @@ export default function Dashboard() {
           {group.items.map(({ label, to, icon: Icon, tag }) => <Link onClick={() => setMobileNav(false)} key={label} to={to} className={`rd-nav-item ${label === "Home" ? "rd-nav-active" : ""}`}><Icon size={18}/><span>{label}</span>{tag && <small>{tag}</small>}</Link>)}
         </div>)}
         <div className="rd-nav-group"><div className="rd-nav-caption">WORKSPACE</div>
+          <Link className="rd-nav-item" to="/plans"><CreditCard size={18}/><span>Plans & Membership</span><small>NEW</small></Link>
           <Link className="rd-nav-item" to="/study-tools"><FileText size={18}/><span>Notes & Flashcards</span></Link>
           <Link className="rd-nav-item" to="/curriculum"><CloudUpload size={18}/><span>Upload & OCR</span><small>NEW</small></Link>
           {user.role === "ADMIN" && <><Link className="rd-nav-item" to="/admin/questions"><ClipboardList size={18}/><span>Question Bank Admin</span></Link><Link className="rd-nav-item" to="/admin/exams"><ClipboardList size={18}/><span>Exam Builder</span></Link></>}
