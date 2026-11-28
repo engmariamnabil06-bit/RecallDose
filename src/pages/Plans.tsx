@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Check, Clock3, Crown, GraduationCap, ShieldCheck, Sparkles, WalletCards } from "lucide-react";\nimport { apiUrl } from "../lib/api";
+import { ArrowLeft, Check, Clock3, Crown, GraduationCap, ShieldCheck, Sparkles, WalletCards } from "lucide-react";
+import { apiUrl } from "../lib/api";
 import "./plans.css";
 
 type BillingCycle = "monthly" | "yearly";
@@ -13,6 +14,9 @@ const plans = [
 
 export default function Plans() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
+  const [membership, setMembership] = useState<Membership | null>(null);
+  const [membershipError, setMembershipError] = useState("");
+  useEffect(() => { let active = true; fetch(apiUrl("/api/plans/me"), { credentials: "include" }).then(async response => { const payload = await response.json().catch(() => ({})); if (!response.ok) throw new Error(payload.message || "Could not load trial status."); if (active) setMembership(payload); }).catch(error => { if (active) setMembershipError(error instanceof Error ? error.message : "Could not load trial status."); }); return () => { active = false; }; }, []);
   return <main className="plans-page">
     <header className="plans-top"><Link to="/dashboard"><ArrowLeft size={16}/> Back to RecallDose</Link><span className="plans-brand"><span>R</span> RECALLDOSE</span></header>
     <section className="plans-hero">
@@ -23,7 +27,9 @@ export default function Plans() {
         <button type="button" className={cycle === "monthly" ? "active" : ""} onClick={() => setCycle("monthly")}>Monthly</button>
         <button type="button" className={cycle === "yearly" ? "active" : ""} onClick={() => setCycle("yearly")}>Yearly <small>planned savings</small></button>
       </div>
-      {membership && <p className="plans-saving">{membership.message}{membership.status === "TRIALING" ? ` ${membership.trialDaysRemaining} days remaining.` : ""}</p>}\n      {membershipError && <p className="plans-saving">{membershipError}</p>}\n      {cycle === "yearly" && <p className="plans-saving">We plan to offer a lower effective monthly price on annual subscriptions. The exact discount will be confirmed with final prices.</p>}
+      {membership && <p className="plans-saving">{membership.message}{membership.status === "TRIALING" ? ` ${membership.trialDaysRemaining} days remaining.` : ""}</p>}
+      {membershipError && <p className="plans-saving">{membershipError}</p>}
+      {cycle === "yearly" && <p className="plans-saving">We plan to offer a lower effective monthly price on annual subscriptions. The exact discount will be confirmed with final prices.</p>}
     </section>
     <section className="plans-grid">
       {plans.map((plan) => {
