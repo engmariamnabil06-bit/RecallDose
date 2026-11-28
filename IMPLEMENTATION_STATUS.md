@@ -53,3 +53,12 @@ No successful full build is claimed. Install dependencies, run `npm run build` a
 - Added editable learner profile fields for name, institution, faculty, academic year and specialization.
 
 Validation still required after this branch is pushed: Prisma contract emission/migration CI, frontend production build and server typecheck. The Neon migration has not been applied. Admin account promotion remains a trusted database operation. File bytes/extracted text still use local disk; production needs configured private durable storage, backups and malware scanning. AI provider availability depends on server credentials, quotas and provider terms; source-grounded medical generation and distributed rate limiting remain future production-hardening tasks.
+
+
+## Verification update — 2026-11-28
+
+The latest GitHub Actions run for this branch completed successfully: frontend production build, server TypeScript typecheck, Prisma contract generation/planning, and source archive packaging. This supersedes the earlier note that dependency-aware build/typechecking had not yet been verified.
+
+Still not verified by CI: applying the migration to the live Neon database, end-to-end tests against configured AI provider credentials, email delivery from the production domain, durable object storage, distributed rate limiting, and browser-based user journeys. See `PRODUCTION_READINESS.md` for the deployment and academic content checklist.
+
+The persistent question-bank format currently supports single-choice, multiple-choice and true/false. Matching and essay prompts can be generated as AI practice, but are not yet persistently scored bank item types. No authentic Assiut University past-paper corpus is included; AI exam-coach output must be presented as simulated practice unless permitted, source-verified papers are supplied and reviewed.
