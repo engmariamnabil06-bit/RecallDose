@@ -94,3 +94,11 @@ The persistent question-bank format currently supports single-choice, multiple-c
 - **Medical Study Path:** the existing program/year/university selector now links each listed subject directly into a context-aware AI lesson. Catalog entries remain starter maps, not official university syllabi.
 - **Verified content:** the existing admin workflow requires a source title/reference and explanation, keeps new questions in DRAFT, and records the approving admin and review timestamp before publication. The exam review screen displays source/review provenance when available.
 - **Remaining production work:** apply and verify the new subscription migration on the target database; implement entitlements and paid plan checkout only after payment contracts; configure and test live AI provider credentials; add durable object storage, OCR quality checks for scanned documents, automated end-to-end exam/payment tests, and independent academic review of question banks.
+
+
+## Advanced learning additions — 2026-11-28
+
+- Added **AI Oral Exam**: a simulated examiner asks one question at a time, waits for the learner's answer, evaluates accuracy/completeness/organization/reasoning, gives concise feedback and a score, then asks one adaptive follow-up. The learner can request a final rubric and revision plan.
+- Added **Lecture-Grounded Answers**: answers are restricted to the supplied lecture and cite explicit [PAGE n] or [SECTION: ...] markers. Missing source information must be acknowledged rather than guessed.
+- Uploaded lecture text is labelled with page markers when PDF form-feed boundaries survive extraction, section markers when recognizable headings are present, or an explicit no-page-marker notice otherwise.
+- Added an external academic-resource directory linking to question banks and biomedical references. RecallDose does not scrape or republish third-party questions.

@@ -14,6 +14,7 @@ import studyToolsRoutes from "./study-tools/routes.js";
 import adminQuestionRoutes from "./admin/questions.js";
 import adminExamRoutes from "./admin/exams.js";
 import plansRoutes from "./plans/routes.js";
+import advancedAiRoutes from "./ai/advanced-routes.js";
 dotenv.config();
 
 const app = express();
@@ -85,6 +86,7 @@ app.use("/api/daily-dose", dailyDoseRoutes);
 app.use("/api/recall-twin", recallTwinRoutes);
 app.use("/api/review-schedule", reviewScheduleRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/ai", advancedAiRoutes);
 app.use("/api/exams", examRoutes);
 app.use("/api/study-tools", studyToolsRoutes);
 app.use("/api/admin/questions", adminQuestionRoutes);

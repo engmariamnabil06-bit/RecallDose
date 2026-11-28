@@ -106,3 +106,11 @@ This is not a claim that the live database migration has been applied, live AI p
 - **Medical Study Path:** the existing program/year/university selector now links each listed subject directly into a context-aware AI lesson. Catalog entries remain starter maps, not official university syllabi.
 - **Verified content:** the existing admin workflow requires a source title/reference and explanation, keeps new questions in DRAFT, and records the approving admin and review timestamp before publication. The exam review screen displays source/review provenance when available.
 - **Remaining production work:** apply and verify the new subscription migration on the target database; implement entitlements and paid plan checkout only after payment contracts; configure and test live AI provider credentials; add durable object storage, OCR quality checks for scanned documents, automated end-to-end exam/payment tests, and independent academic review of question banks.
+
+
+## Advanced tutor and external academic resources
+
+- AI Oral Exam and Lecture-Grounded Answers use a dedicated authenticated server endpoint and server-only AI provider credentials/fallbacks. Configure AI_API_KEY or a fallback key on the API server; never expose keys in frontend variables.
+- Oral exam conversation currently lives in browser state and is not yet persisted as a long-term learner record. Faculty review is recommended for examiner quality and scoring consistency.
+- Page citations depend on extraction markers. Scanned image OCR may not have reliable page markers; never invent page numbers. Scanned-PDF page-by-page OCR remains future work.
+- The academic directory is link-out only. EnterMedSchool.org identifies its .org materials as non-commercial with attribution required. Do not import/re-host its questions in a commercial RecallDose tier without confirming a compatible license or written permission. DrillMed is external practice only; no republication rights are assumed. NCBI Bookshelf and PMC reuse depends on each item's rights/license.
