@@ -216,3 +216,5 @@ router.post("/:examId/:attemptId/finish", async (req, res) => {
     return res.status(500).json({ message: "Could not finish the exam." });
   }
 });
+
+export default router;
