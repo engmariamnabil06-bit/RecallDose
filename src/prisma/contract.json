@@ -84,6 +84,10 @@
       "model": "Subject",
       "namespace": "public"
     },
+    "Subscription": {
+      "model": "Subscription",
+      "namespace": "public"
+    },
     "Topic": {
       "model": "Topic",
       "namespace": "public"
@@ -261,6 +265,19 @@
               }
             ]
           },
+          "PaymentProvider": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "FAWRY_PLUS",
+                "value": "FAWRY_PLUS"
+              },
+              {
+                "name": "ORANGE_WALLET",
+                "value": "ORANGE_WALLET"
+              }
+            ]
+          },
           "QuestionReviewStatus": {
             "codecId": "pg/text@1",
             "members": [
@@ -309,6 +326,52 @@
               {
                 "name": "ABANDONED",
                 "value": "ABANDONED"
+              }
+            ]
+          },
+          "SubscriptionPlan": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "FREE_TRIAL",
+                "value": "FREE_TRIAL"
+              },
+              {
+                "name": "FREE",
+                "value": "FREE"
+              },
+              {
+                "name": "PLUS",
+                "value": "PLUS"
+              },
+              {
+                "name": "PRO",
+                "value": "PRO"
+              }
+            ]
+          },
+          "SubscriptionStatus": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "TRIALING",
+                "value": "TRIALING"
+              },
+              {
+                "name": "ACTIVE",
+                "value": "ACTIVE"
+              },
+              {
+                "name": "EXPIRED",
+                "value": "EXPIRED"
+              },
+              {
+                "name": "CANCELLED",
+                "value": "CANCELLED"
+              },
+              {
+                "name": "PENDING_PAYMENT",
+                "value": "PENDING_PAYMENT"
               }
             ]
           },
@@ -3226,6 +3289,182 @@
               "table": "Subject"
             }
           },
+          "Subscription": {
+            "fields": {
+              "billingCycle": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "currentPeriodEnd": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "currentPeriodStart": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentProvider": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "PaymentProvider",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "plan": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SubscriptionPlan",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "providerReference": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "SubscriptionStatus",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "trialEndsAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "trialStartedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "billingCycle": {
+                  "column": "billingCycle"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "currentPeriodEnd": {
+                  "column": "currentPeriodEnd"
+                },
+                "currentPeriodStart": {
+                  "column": "currentPeriodStart"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "paymentProvider": {
+                  "column": "paymentProvider"
+                },
+                "plan": {
+                  "column": "plan"
+                },
+                "providerReference": {
+                  "column": "providerReference"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "trialEndsAt": {
+                  "column": "trialEndsAt"
+                },
+                "trialStartedAt": {
+                  "column": "trialStartedAt"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Subscription"
+            }
+          },
           "Topic": {
             "fields": {
               "createdAt": {
@@ -3582,6 +3821,22 @@
                 },
                 "to": {
                   "model": "StudyNote",
+                  "namespace": "public"
+                }
+              },
+              "subscription": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Subscription",
                   "namespace": "public"
                 }
               },
@@ -6367,6 +6622,176 @@
                 }
               ]
             },
+            "Subscription": {
+              "checks": [
+                {
+                  "expression": "\"paymentProvider\" IN ('FAWRY_PLUS', 'ORANGE_WALLET')",
+                  "name": "Subscription_paymentProvider_check_ccddf3b0",
+                  "prefix": "Subscription_paymentProvider_check"
+                },
+                {
+                  "expression": "\"plan\" IN ('FREE_TRIAL', 'FREE', 'PLUS', 'PRO')",
+                  "name": "Subscription_plan_check_28ec3c30",
+                  "prefix": "Subscription_plan_check"
+                },
+                {
+                  "expression": "\"status\" IN ('TRIALING', 'ACTIVE', 'EXPIRED', 'CANCELLED', 'PENDING_PAYMENT')",
+                  "name": "Subscription_status_check_f4436f66",
+                  "prefix": "Subscription_status_check"
+                }
+              ],
+              "columns": {
+                "billingCycle": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "currentPeriodEnd": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "currentPeriodStart": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "paymentProvider": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "PaymentProvider",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "plan": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "FREE_TRIAL"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SubscriptionPlan",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "providerReference": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "TRIALING"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "SubscriptionStatus",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "trialEndsAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "trialStartedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Subscription"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "User"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "plan"
+                  ],
+                  "name": "Subscription_plan_idx_0cb3f94a",
+                  "prefix": "Subscription_plan_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status",
+                    "trialEndsAt"
+                  ],
+                  "name": "Subscription_status_trialEndsAt_idx_429d45c6",
+                  "prefix": "Subscription_status_trialEndsAt_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "userId"
+                  ]
+                }
+              ]
+            },
             "Topic": {
               "columns": {
                 "createdAt": {
@@ -6799,6 +7224,13 @@
                 "SKIPPED"
               ]
             },
+            "PaymentProvider": {
+              "kind": "valueSet",
+              "values": [
+                "FAWRY_PLUS",
+                "ORANGE_WALLET"
+              ]
+            },
             "QuestionReviewStatus": {
               "kind": "valueSet",
               "values": [
@@ -6823,6 +7255,25 @@
                 "ABANDONED"
               ]
             },
+            "SubscriptionPlan": {
+              "kind": "valueSet",
+              "values": [
+                "FREE_TRIAL",
+                "FREE",
+                "PLUS",
+                "PRO"
+              ]
+            },
+            "SubscriptionStatus": {
+              "kind": "valueSet",
+              "values": [
+                "TRIALING",
+                "ACTIVE",
+                "EXPIRED",
+                "CANCELLED",
+                "PENDING_PAYMENT"
+              ]
+            },
             "UserRole": {
               "kind": "valueSet",
               "values": [
@@ -6836,10 +7287,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a6f21d59de952118c8726b26643719ea687d1673ef6f235c69f3ab64922207d8"
+    "storageHash": "9e6d4d170678be8225b05c7c63f4b54e4827902b1b2c19b39b0acd5f0be03413"
   },
   "execution": {
-    "executionHash": "565b545e7b1ca102a894c497dbc2d2e541f07d4290e1d03bb8c174db4c22c89f",
+    "executionHash": "41b6ed874589af4af916031e20843a6b01d55f6fe2d2dc16bd03d0ae88b80d33",
     "mutations": {
       "defaults": [
         {
@@ -7253,6 +7704,32 @@
           },
           "ref": {
             "entry": "Subject",
+            "field": "updatedAt",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "Subscription",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "instantNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "Subscription",
             "field": "updatedAt",
             "namespace": "public"
           }

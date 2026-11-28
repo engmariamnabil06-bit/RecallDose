@@ -34,9 +34,9 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a6f21d59de952118c8726b26643719ea687d1673ef6f235c69f3ab64922207d8'>;
+  StorageHashBase<'9e6d4d170678be8225b05c7c63f4b54e4827902b1b2c19b39b0acd5f0be03413'>;
 export type ExecutionHash =
-  ExecutionHashBase<'565b545e7b1ca102a894c497dbc2d2e541f07d4290e1d03bb8c174db4c22c89f'>;
+  ExecutionHashBase<'41b6ed874589af4af916031e20843a6b01d55f6fe2d2dc16bd03d0ae88b80d33'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -480,6 +480,21 @@ export type FieldOutputTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly Subscription: {
+      readonly billingCycle: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly currentPeriodEnd: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly currentPeriodStart: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly id: CodecTypes['pg/text@1']['output'];
+      readonly paymentProvider: 'FAWRY_PLUS' | 'ORANGE_WALLET' | null;
+      readonly plan: 'FREE_TRIAL' | 'FREE' | 'PLUS' | 'PRO';
+      readonly providerReference: CodecTypes['pg/text@1']['output'] | null;
+      readonly status: 'TRIALING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT';
+      readonly trialEndsAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly trialStartedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly userId: CodecTypes['pg/text@1']['output'];
+    };
     readonly Topic: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
@@ -748,6 +763,21 @@ export type FieldInputTypes = {
       readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
+    readonly Subscription: {
+      readonly billingCycle: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly currentPeriodEnd: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly currentPeriodStart: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly id: CodecTypes['pg/text@1']['input'];
+      readonly paymentProvider: 'FAWRY_PLUS' | 'ORANGE_WALLET' | null;
+      readonly plan: 'FREE_TRIAL' | 'FREE' | 'PLUS' | 'PRO';
+      readonly providerReference: CodecTypes['pg/text@1']['input'] | null;
+      readonly status: 'TRIALING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT';
+      readonly trialEndsAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly trialStartedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly userId: CodecTypes['pg/text@1']['input'];
     };
     readonly Topic: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1018,6 +1048,21 @@ export type StorageColumnTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
+    readonly Subscription: {
+      readonly billingCycle: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly currentPeriodEnd: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly currentPeriodStart: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+      readonly id: CodecTypes['pg/text@1']['output'];
+      readonly paymentProvider: 'FAWRY_PLUS' | 'ORANGE_WALLET' | null;
+      readonly plan: 'FREE_TRIAL' | 'FREE' | 'PLUS' | 'PRO';
+      readonly providerReference: CodecTypes['pg/text@1']['output'] | null;
+      readonly status: 'TRIALING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT';
+      readonly trialEndsAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly trialStartedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly userId: CodecTypes['pg/text@1']['output'];
+    };
     readonly Topic: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly description: CodecTypes['pg/text@1']['output'] | null;
@@ -1286,6 +1331,21 @@ export type StorageColumnInputTypes = {
       readonly isActive: CodecTypes['pg/bool@1']['input'];
       readonly name: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+    };
+    readonly Subscription: {
+      readonly billingCycle: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly currentPeriodEnd: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly currentPeriodStart: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
+      readonly id: CodecTypes['pg/text@1']['input'];
+      readonly paymentProvider: 'FAWRY_PLUS' | 'ORANGE_WALLET' | null;
+      readonly plan: 'FREE_TRIAL' | 'FREE' | 'PLUS' | 'PRO';
+      readonly providerReference: CodecTypes['pg/text@1']['input'] | null;
+      readonly status: 'TRIALING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT';
+      readonly trialEndsAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly trialStartedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly userId: CodecTypes['pg/text@1']['input'];
     };
     readonly Topic: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -1621,6 +1681,23 @@ export namespace Models {
     topics: public_Topic[];
     readonly [RelationKeys]?: 'faculty' | 'topics';
   };
+  export type public_Subscription = {
+    billingCycle: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    currentPeriodEnd: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    currentPeriodStart: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
+    id: CodecTypes['pg/text@1']['output'];
+    paymentProvider: 'FAWRY_PLUS' | 'ORANGE_WALLET' | null;
+    plan: 'FREE_TRIAL' | 'FREE' | 'PLUS' | 'PRO';
+    providerReference: CodecTypes['pg/text@1']['output'] | null;
+    status: 'TRIALING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING_PAYMENT';
+    trialEndsAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    trialStartedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
+    userId: CodecTypes['pg/text@1']['output'];
+    user: public_User;
+    readonly [RelationKeys]?: 'user';
+  };
   export type public_Topic = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     description: CodecTypes['pg/text@1']['output'] | null;
@@ -1655,6 +1732,7 @@ export namespace Models {
     studyActivities: public_StudyActivity[];
     studyCards: public_StudyCard[];
     studyNotes: public_StudyNote[];
+    subscription: public_Subscription | null;
     weakSpots: public_WeakSpot[];
     readonly [RelationKeys]?:
       | 'dailyDoses'
@@ -1668,6 +1746,7 @@ export namespace Models {
       | 'studyActivities'
       | 'studyCards'
       | 'studyNotes'
+      | 'subscription'
       | 'weakSpots';
   };
   export type public_WeakSpot = {
@@ -1710,6 +1789,7 @@ export declare const models: {
     StudyCard: Models.public_StudyCard;
     StudyNote: Models.public_StudyNote;
     Subject: Models.public_Subject;
+    Subscription: Models.public_Subscription;
     Topic: Models.public_Topic;
     User: Models.public_User;
     WeakSpot: Models.public_WeakSpot;
@@ -3683,6 +3763,115 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly Subscription: {
+              columns: {
+                readonly billingCycle: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly currentPeriodEnd: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly currentPeriodStart: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: true;
+                };
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly paymentProvider: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly plan: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'FREE_TRIAL'>;
+                  };
+                };
+                readonly providerReference: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly status: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/text@1', 'TRIALING'>;
+                  };
+                };
+                readonly trialEndsAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly trialStartedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                };
+                readonly userId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['userId'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'Subscription_plan_idx_0cb3f94a';
+                  readonly prefix: 'Subscription_plan_idx';
+                  readonly columns: readonly ['plan'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'Subscription_status_trialEndsAt_idx_429d45c6';
+                  readonly prefix: 'Subscription_status_trialEndsAt_idx';
+                  readonly columns: readonly ['status', 'trialEndsAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Subscription';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'User';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly Topic: {
               columns: {
                 readonly createdAt: {
@@ -3999,6 +4188,10 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['WRONG_ANSWER', 'SKIPPED'];
             };
+            readonly PaymentProvider: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['FAWRY_PLUS', 'ORANGE_WALLET'];
+            };
             readonly QuestionReviewStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['DRAFT', 'APPROVED', 'ARCHIVED'];
@@ -4010,6 +4203,20 @@ type ContractBase = Omit<
             readonly RecallSessionStatus: {
               readonly kind: 'valueSet';
               readonly values: readonly ['IN_PROGRESS', 'COMPLETED', 'ABANDONED'];
+            };
+            readonly SubscriptionPlan: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['FREE_TRIAL', 'FREE', 'PLUS', 'PRO'];
+            };
+            readonly SubscriptionStatus: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'TRIALING',
+                'ACTIVE',
+                'EXPIRED',
+                'CANCELLED',
+                'PENDING_PAYMENT',
+              ];
             };
             readonly UserRole: {
               readonly kind: 'valueSet';
@@ -4067,6 +4274,10 @@ type ContractBase = Omit<
     readonly StudyCard: { readonly namespace: 'public' & NamespaceId; readonly model: 'StudyCard' };
     readonly StudyNote: { readonly namespace: 'public' & NamespaceId; readonly model: 'StudyNote' };
     readonly Subject: { readonly namespace: 'public' & NamespaceId; readonly model: 'Subject' };
+    readonly Subscription: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Subscription';
+    };
     readonly Topic: { readonly namespace: 'public' & NamespaceId; readonly model: 'Topic' };
     readonly User: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
     readonly WeakSpot: { readonly namespace: 'public' & NamespaceId; readonly model: 'WeakSpot' };
@@ -5885,6 +6096,110 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly Subscription: {
+            readonly fields: {
+              readonly billingCycle: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly currentPeriodEnd: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly currentPeriodStart: {
+                readonly nullable: true;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly paymentProvider: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly plan: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly providerReference: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly status: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly trialEndsAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly trialStartedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly userId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Subscription';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly billingCycle: { readonly column: 'billingCycle' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly currentPeriodEnd: { readonly column: 'currentPeriodEnd' };
+                readonly currentPeriodStart: { readonly column: 'currentPeriodStart' };
+                readonly id: { readonly column: 'id' };
+                readonly paymentProvider: { readonly column: 'paymentProvider' };
+                readonly plan: { readonly column: 'plan' };
+                readonly providerReference: { readonly column: 'providerReference' };
+                readonly status: { readonly column: 'status' };
+                readonly trialEndsAt: { readonly column: 'trialEndsAt' };
+                readonly trialStartedAt: { readonly column: 'trialStartedAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+                readonly userId: { readonly column: 'userId' };
+              };
+            };
+          };
           readonly Topic: {
             readonly fields: {
               readonly createdAt: {
@@ -6133,6 +6448,18 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['userId'];
                 };
               };
+              readonly subscription: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Subscription';
+                };
+                readonly cardinality: '1:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
               readonly weakSpots: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -6327,6 +6654,13 @@ type ContractBase = Omit<
               { readonly name: 'SKIPPED'; readonly value: 'SKIPPED' },
             ];
           };
+          readonly PaymentProvider: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'FAWRY_PLUS'; readonly value: 'FAWRY_PLUS' },
+              { readonly name: 'ORANGE_WALLET'; readonly value: 'ORANGE_WALLET' },
+            ];
+          };
           readonly QuestionReviewStatus: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
@@ -6349,6 +6683,25 @@ type ContractBase = Omit<
               { readonly name: 'IN_PROGRESS'; readonly value: 'IN_PROGRESS' },
               { readonly name: 'COMPLETED'; readonly value: 'COMPLETED' },
               { readonly name: 'ABANDONED'; readonly value: 'ABANDONED' },
+            ];
+          };
+          readonly SubscriptionPlan: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'FREE_TRIAL'; readonly value: 'FREE_TRIAL' },
+              { readonly name: 'FREE'; readonly value: 'FREE' },
+              { readonly name: 'PLUS'; readonly value: 'PLUS' },
+              { readonly name: 'PRO'; readonly value: 'PRO' },
+            ];
+          };
+          readonly SubscriptionStatus: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'TRIALING'; readonly value: 'TRIALING' },
+              { readonly name: 'ACTIVE'; readonly value: 'ACTIVE' },
+              { readonly name: 'EXPIRED'; readonly value: 'EXPIRED' },
+              { readonly name: 'CANCELLED'; readonly value: 'CANCELLED' },
+              { readonly name: 'PENDING_PAYMENT'; readonly value: 'PENDING_PAYMENT' },
             ];
           };
           readonly UserRole: {
@@ -6660,6 +7013,23 @@ type ContractBase = Omit<
           readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'Subject';
+            readonly field: 'updatedAt';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Subscription';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly onUpdate: { readonly id: 'instantNow'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'Subscription';
             readonly field: 'updatedAt';
             readonly namespace: 'public';
           };
