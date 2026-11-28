@@ -13,6 +13,7 @@ import examRoutes from "./exams/routes.js";
 import studyToolsRoutes from "./study-tools/routes.js";
 import adminQuestionRoutes from "./admin/questions.js";
 import adminExamRoutes from "./admin/exams.js";
+import plansRoutes from "./plans/routes.js";
 dotenv.config();
 
 const app = express();
@@ -88,6 +89,7 @@ app.use("/api/exams", examRoutes);
 app.use("/api/study-tools", studyToolsRoutes);
 app.use("/api/admin/questions", adminQuestionRoutes);
 app.use("/api/admin/exams", adminExamRoutes);
+app.use("/api/plans", plansRoutes);
 
 async function startServer() {
   try {
