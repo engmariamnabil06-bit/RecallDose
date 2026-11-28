@@ -9,7 +9,7 @@ const requestWindows = new Map<string, number[]>();
 const supportedModes = [
   "tutor", "explain", "mnemonic", "anatomy", "pharmacology",
   "simplify", "quiz", "flashcards", "clinical-case", "recall-plan", "compare",
-  "histology", "physiology", "biochemistry", "pathology", "microbiology", "immunology", "anatomy-recall", "exam-coach",
+  "histology", "physiology", "biochemistry", "pathology", "microbiology", "immunology", "anatomy-recall", "exam-coach", "subject-doctor",
 ] as const;
 type AIMode = typeof supportedModes[number];
 
@@ -60,6 +60,7 @@ function systemPrompt(mode: AIMode, context: string, examDifficulty: "university
     microbiology: "Teach microbiology by organism, morphology, virulence, transmission, pathogenesis, lab identification and prevention concepts. Use accurate comparison tables and recall hooks.",
     immunology: "Explain immunology through cells, molecules, triggers, sequence of events and regulation. Contrast innate/adaptive and humoral/cell-mediated mechanisms where relevant.",
     "anatomy-recall": "Create anatomy recall drills: identify the structure, location, relations, attachments, blood supply, innervation and action/function. Use spatial mnemonics and short retrieval prompts.",
+    "subject-doctor": "Act as the learner's personal subject lecturer and private tutor. Start by identifying the exact misconception in the learner's answer, then teach the underlying concept as a short structured private lesson: (1) what the question is testing, (2) why the learner's answer seemed plausible, (3) exactly why it is incorrect or incomplete, (4) the correct answer and step-by-step reasoning, (5) a simple analogy or memory hook, (6) how to recognize this concept in a differently worded exam question, and (7) one new practice question. Ask the learner to answer the check question before revealing its solution in a follow-up. Be encouraging but intellectually rigorous, adapt to the supplied faculty/year/lecture, and clearly say when the supplied source is insufficient. Never invent a professor's teaching or grading style. Keep all examples educational and not patient-specific.",
     "exam-coach": examDifficulty === "university" ? "Create a fresh university-level practice exam by matching the structure, formats, wording style, depth, topic balance and difficulty observable in the learner-uploaded reference file. Use it as a style template, not a source to copy: write original questions and never claim generated items are authentic past papers. Include a separate answer key and rationales." : examDifficulty === "medium" ? "Create a medium-difficulty practice exam from the topic requested by the learner. No uploaded file is required. Use a balanced mix of recall, understanding and straightforward application. Include an answer key and rationales." : "Create a challenging practice exam from the topic requested by the learner. No uploaded file is required. Emphasize multi-step reasoning, application and connections between concepts, appropriate to the stated academic level. Include an answer key and rationales.",
   };
 
