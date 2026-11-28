@@ -1,0 +1,203 @@
+[
+  {
+    "id": "table.Subscription",
+    "label": "Create table \"Subscription\"",
+    "summary": "Creates table \"Subscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Subscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Subscription\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Subscription\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Subscription\"",
+        "sql": "CREATE TABLE \"public\".\"Subscription\" (\n  \"billingCycle\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"currentPeriodEnd\" timestamptz,\n  \"currentPeriodStart\" timestamptz,\n  \"id\" text NOT NULL,\n  \"paymentProvider\" text,\n  \"plan\" text DEFAULT 'FREE_TRIAL' NOT NULL,\n  \"providerReference\" text,\n  \"status\" text DEFAULT 'TRIALING' NOT NULL,\n  \"trialEndsAt\" timestamptz NOT NULL,\n  \"trialStartedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"Subscription_paymentProvider_check_ccddf3b0\" CHECK (\"paymentProvider\" IN ('FAWRY_PLUS', 'ORANGE_WALLET')),\n  CONSTRAINT \"Subscription_plan_check_28ec3c30\" CHECK (\"plan\" IN ('FREE_TRIAL', 'FREE', 'PLUS', 'PRO')),\n  CONSTRAINT \"Subscription_status_check_f4436f66\" CHECK (\"status\" IN ('TRIALING', 'ACTIVE', 'EXPIRED', 'CANCELLED', 'PENDING_PAYMENT'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Subscription\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Subscription\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.Subscription.Subscription_userId_key",
+    "label": "Add unique constraint on \"Subscription\" (userId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "Subscription_userId_key",
+        "table": "Subscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Subscription_userId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Subscription_userId_key",
+          "public",
+          "\"public\".\"Subscription\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"Subscription_userId_key\"",
+        "sql": "ALTER TABLE \"public\".\"Subscription\" ADD CONSTRAINT \"Subscription_userId_key\" UNIQUE (\"userId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Subscription_userId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Subscription_userId_key",
+          "public",
+          "\"public\".\"Subscription\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Subscription.Subscription_plan_idx_0cb3f94a",
+    "label": "Create index \"Subscription_plan_idx_0cb3f94a\" on \"Subscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Subscription_plan_idx_0cb3f94a",
+        "table": "Subscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Subscription_plan_idx_0cb3f94a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Subscription_plan_idx_0cb3f94a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Subscription_plan_idx_0cb3f94a\"",
+        "sql": "CREATE INDEX \"Subscription_plan_idx_0cb3f94a\" ON \"public\".\"Subscription\" (\"plan\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Subscription_plan_idx_0cb3f94a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Subscription_plan_idx_0cb3f94a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Subscription.Subscription_status_trialEndsAt_idx_429d45c6",
+    "label": "Create index \"Subscription_status_trialEndsAt_idx_429d45c6\" on \"Subscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Subscription_status_trialEndsAt_idx_429d45c6",
+        "table": "Subscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Subscription_status_trialEndsAt_idx_429d45c6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Subscription_status_trialEndsAt_idx_429d45c6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Subscription_status_trialEndsAt_idx_429d45c6\"",
+        "sql": "CREATE INDEX \"Subscription_status_trialEndsAt_idx_429d45c6\" ON \"public\".\"Subscription\" (\"status\", \"trialEndsAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Subscription_status_trialEndsAt_idx_429d45c6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Subscription_status_trialEndsAt_idx_429d45c6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Subscription.Subscription_userId_fkey",
+    "label": "Add foreign key \"Subscription_userId_fkey\" on \"Subscription\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Subscription_userId_fkey",
+        "table": "Subscription"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Subscription_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Subscription_userId_fkey",
+          "public",
+          "\"public\".\"Subscription\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Subscription_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Subscription\"\nADD CONSTRAINT \"Subscription_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Subscription_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Subscription_userId_fkey",
+          "public",
+          "\"public\".\"Subscription\""
+        ]
+      }
+    ]
+  }
+]
