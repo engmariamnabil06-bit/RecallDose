@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getSessionUser } from "../auth/sessionUser";
-import { buildReviewSchedule, recordMistakeReview } from "./service";
+import { getSessionUser } from "../auth/sessionUser.js";
+import { buildReviewSchedule, recordMistakeReview } from "./service.js";
 
 function getSessionTokenFromCookie(cookieHeader?: string) {
   if (!cookieHeader) return null;

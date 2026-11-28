@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { db } from "../db";
+import { db } from "../db.js";
 
 type RegisterInput = {
   email: string;
@@ -45,6 +45,18 @@ export async function registerUser(input: RegisterInput) {
     passwordHash,
     firstName: input.firstName.trim(),
     lastName: input.lastName.trim(),
+  });
+
+  const trialStartedAt = new Date();
+  const trialEndsAt = new Date(trialStartedAt.getTime() + 60 * 24 * 60 * 60 * 1000);
+
+  // Every new student starts with a full-access 60-day trial.
+  await db.orm.public.Subscription.create({
+    userId: user.id,
+    plan: "FREE_TRIAL",
+    status: "TRIALING",
+    trialStartedAt,
+    trialEndsAt,
   });
 
   // Create profile

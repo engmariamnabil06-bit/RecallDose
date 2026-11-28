@@ -1,6 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 import crypto from "crypto";
-import { db } from "../db";
+import { db } from "../db.js";
 
 const SESSION_DURATION_DAYS = 7;
 

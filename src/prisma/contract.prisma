@@ -74,9 +74,50 @@ model User {
   weakSpots     WeakSpot[]
   dailyDoses    DailyDose[]
   fileAccesses  FileAccess[]
+  studyNotes    StudyNote[]
+  studyCards    StudyCard[]
+  studyActivities StudyActivity[]
+  subscription   Subscription?
 
   @@index([email])
   @@index([role])
+}
+
+model StudyNote {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  subject   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt temporal.updatedAt()
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([userId, subject])
+}
+
+model StudyCard {
+  id        String   @id @default(uuid())
+  userId    String
+  front     String
+  back      String
+  subject   String
+  createdAt DateTime @default(now())
+  updatedAt      temporal.updatedAt()
+  reviewCount    Int      @default(0)
+  easeFactor     Float    @default(2.5)
+  intervalDays   Int      @default(0)
+  lastRating     String?
+  lastReviewedAt DateTime?
+  nextReviewAt   DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, subject])
+  @@index([userId, nextReviewAt])
 }
 
 model Profile {
@@ -123,6 +164,12 @@ enum Difficulty {
   HARD
 }
 
+enum QuestionReviewStatus {
+  DRAFT
+  APPROVED
+  ARCHIVED
+}
+
 enum ExamStatus {
   DRAFT
   PUBLISHED
@@ -152,10 +199,16 @@ model Question {
   explanation String?
   type        QuestionType         @default(SINGLE_CHOICE)
   difficulty  Difficulty           @default(MEDIUM)
-  subject     String?
-  topic       String?
-  topicId     String?
-  isActive    Boolean              @default(true)
+  subject           String?
+  topic             String?
+  topicId           String?
+  sourceTitle       String?
+  sourceReference   String?
+  sourcePage        String?
+  reviewStatus      QuestionReviewStatus @default(APPROVED)
+  reviewedAt        DateTime?
+  reviewedByUserId  String?
+  isActive          Boolean              @default(true)
   createdAt   DateTime             @default(now())
   updatedAt   temporal.updatedAt()
 
@@ -164,6 +217,7 @@ model Question {
   mistakes             Mistake[]
   topicRef             Topic?               @relation(fields: [topicId], references: [id], onDelete: SetNull)
   recallSessionQuestions RecallSessionQuestion[]
+  examQuestions          ExamQuestion[]
 
   @@index([subject])
   @@index([topic])
@@ -197,6 +251,23 @@ model Exam {
   updatedAt       temporal.updatedAt()
 
   attempts        ExamAttempt[]
+  questions       ExamQuestion[]
+}
+
+model ExamQuestion {
+  id           String   @id @default(uuid())
+  examId       String
+  questionId   String
+  questionOrder Int
+  createdAt    DateTime @default(now())
+
+  exam         Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+  @@unique([examId, questionOrder])
+  @@index([examId])
+  @@index([questionId])
 }
 
 model ExamAttempt {
@@ -307,6 +378,23 @@ model Mistake {
   @@index([attemptId])
   @@index([recallSessionId])
   @@index([userId, resolved])
+}
+
+model StudyActivity {
+  id                String   @id @default(uuid())
+  userId            String
+  activityDate      String
+  questionsAnswered Int      @default(0)
+  correctAnswers    Int      @default(0)
+  wrongAnswers      Int      @default(0)
+  sessionsCompleted Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         temporal.updatedAt()
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityDate])
+  @@index([userId, activityDate])
 }
 
 model Progress {
@@ -448,3 +536,45 @@ model FileAccess {
 
 
 
+
+
+enum SubscriptionPlan {
+  FREE_TRIAL
+  FREE
+  PLUS
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING_PAYMENT
+}
+
+enum PaymentProvider {
+  FAWRY_PLUS
+  ORANGE_WALLET
+}
+
+model Subscription {
+  id              String             @id @default(uuid())
+  userId          String             @unique
+  plan            SubscriptionPlan   @default(FREE_TRIAL)
+  status          SubscriptionStatus @default(TRIALING)
+  trialStartedAt  DateTime           @default(now())
+  trialEndsAt     DateTime
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  billingCycle    String?
+  paymentProvider PaymentProvider?
+  providerReference String?
+  createdAt       DateTime           @default(now())
+  updatedAt       temporal.updatedAt()
+
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, trialEndsAt])
+  @@index([plan])
+}

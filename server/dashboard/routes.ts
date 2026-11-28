@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getSessionUser } from "../auth/sessionUser";
-import { getDashboardData } from "./service";
+import { getSessionUser } from "../auth/sessionUser.js";
+import { getDashboardData } from "./service.js";
 
 function getSessionTokenFromCookie(
   cookieHeader?: string

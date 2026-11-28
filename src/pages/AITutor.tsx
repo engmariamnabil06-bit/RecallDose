@@ -1,76 +1,64 @@
-import { FormEvent, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { ArrowLeft, Bot, BookOpen, Brain, Send, Sparkles, Stethoscope } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Activity, ArrowLeft, Atom, BookMarked, BookOpen, Brain, ClipboardList, Languages, MessageSquareText, Pill, Send, Sparkles, Stethoscope, Target, WandSparkles, Microscope, FlaskConical, Dna, type LucideIcon } from "lucide-react";
 import { apiUrl } from "../lib/api";
 import "./ai-tutor.css";
 
-type Mode = "tutor" | "explain" | "mnemonic";
+type Mode = "tutor" | "explain" | "mnemonic" | "anatomy" | "pharmacology" | "simplify" | "quiz" | "flashcards" | "clinical-case" | "recall-plan" | "compare" | "histology" | "physiology" | "biochemistry" | "pathology" | "microbiology" | "immunology" | "anatomy-recall" | "exam-coach" | "subject-doctor";
 type Message = { role: "user" | "assistant"; text: string };
+type ExamDifficulty = "university" | "medium" | "hard";
 
-const prompts: Record<Mode, { label: string; title: string; placeholder: string }> = {
-  tutor: { label: "AI Tutor", title: "Understand the concept, not just memorize it.", placeholder: "Ask about a concept, pathway, drug class, or lecture…" },
-  explain: { label: "Explain a mistake", title: "Turn a wrong answer into a useful lesson.", placeholder: "Paste the question, your answer, and the correct answer…" },
-  mnemonic: { label: "Memory aid", title: "Build a mnemonic that actually makes sense.", placeholder: "What facts, list, or drug class do you need to remember?" },
-};
+const modes: Array<{id:Mode;label:string;title:string;placeholder:string;description:string;icon:LucideIcon}> = [
+{id:"tutor",label:"AI Tutor",title:"Understand the concept, not just memorize it.",placeholder:"Ask about a concept, pathway, process or lecture…",description:"Step-by-step lessons and self-checks.",icon:MessageSquareText},
+{id:"anatomy",label:"Anatomy Tutor",title:"Build a clear mental map of the human body.",placeholder:"Ask about a region, structure, nerve, vessel or relation…",description:"Regions, relations, supply, innervation and clinical links.",icon:Activity},
+{id:"pharmacology",label:"Pharmacology",title:"Connect drug classes, mechanisms and effects.",placeholder:"Ask about a drug, class, mechanism or adverse effect…",description:"MOA, indications, adverse effects and interactions.",icon:Pill},
+{id:"explain",label:"Mistake Explainer",title:"Turn a wrong answer into a useful lesson.",placeholder:"Paste the question, your answer and the correct answer…",description:"Find the misconception and why the distractor is wrong.",icon:BookOpen},
+{id:"subject-doctor",label:"Dr. Subject",title:"Your personal lecturer is ready to teach you.",placeholder:"Tell Dr. Subject what still feels confusing…",description:"A private lesson built around your exact mistakes.",icon:Stethoscope},
+{id:"mnemonic",label:"Mnemonic Builder",title:"Make high-yield facts easier to remember.",placeholder:"What list, pathway or drug family do you need to remember?",description:"Acronyms, stories and memory cues without changing facts.",icon:Brain},
+{id:"simplify",label:"Lecture Simplifier",title:"Make dense lecture notes easier to understand.",placeholder:"What part of your lecture should we simplify?",description:"Plain-language explanations and a faithful recap.",icon:Languages},
+{id:"quiz",label:"Quiz Generator",title:"Test your understanding with fresh questions.",placeholder:"Choose a topic or paste lecture material to turn into a quiz…",description:"Practice questions with answer key and rationales.",icon:ClipboardList},
+{id:"flashcards",label:"Flashcard Creator",title:"Turn your lecture into active-recall cards.",placeholder:"Which material should become front/back flashcards?",description:"Atomic cards designed for retrieval and spaced review.",icon:BookMarked},
+{id:"clinical-case",label:"Case Coach",title:"Practice clinical reasoning with fictional cases.",placeholder:"Choose a topic or ask for a fictional educational case…",description:"Guided reasoning, not patient-specific advice.",icon:Stethoscope},
+{id:"compare",label:"Compare Concepts",title:"See the important differences side by side.",placeholder:"Which two structures, diseases or drug classes should we compare?",description:"Similarities, differences and common confusions.",icon:Atom},
+{id:"recall-plan",label:"Study Plan AI",title:"Turn your learning data into a focused plan.",placeholder:"Ask for adjustments to your next study sessions…",description:"Prioritized study actions informed by your Recall Twin.",icon:Target},
+{id:"histology",label:"Histology",title:"Learn to recognize tissues and microscopic patterns.",placeholder:"Describe the tissue or paste your histology notes…",description:"Tissue layers, cells, identifying features and comparisons.",icon:Microscope},
+{id:"physiology",label:"Physiology",title:"Understand how the body works step by step.",placeholder:"Ask about a process, feedback loop or mechanism…",description:"Mechanisms, regulation, graphs and clinical links.",icon:Activity},
+{id:"biochemistry",label:"Biochemistry",title:"Make pathways and enzymes easier to follow.",placeholder:"Which pathway, enzyme or metabolic concept…",description:"Pathway maps, regulation, inputs and outputs.",icon:FlaskConical},
+{id:"pathology",label:"Pathology",title:"Connect causes to disease mechanisms.",placeholder:"Ask about a disease process or pathology topic…",description:"Etiology, pathogenesis, morphology and complications.",icon:Stethoscope},
+{id:"microbiology",label:"Microbiology",title:"Remember organisms and their key differences.",placeholder:"Which organism or group are you studying…",description:"Organism profiles, virulence and lab identification.",icon:Dna},
+{id:"immunology",label:"Immunology",title:"Make immune pathways easier to understand.",placeholder:"Ask about cells, antibodies or immune mechanisms…",description:"Cells, molecules and immune response sequences.",icon:Atom},
+{id:"anatomy-recall",label:"Anatomy Recall",title:"Practice anatomy with active-recall prompts.",placeholder:"Choose a region, nerve, muscle or organ…",description:"Relations, attachments, supply and innervation drills.",icon:Brain},
+{id:"exam-coach",label:"University Exam Coach",title:"Practice at university exam level.",placeholder:"Enter your faculty/program, subject, topic, number of questions and question types…",description:"Simulated MCQ, T/F, matching, short notes and essays.",icon:ClipboardList}
+];
+function isMode(value:unknown):value is Mode{return typeof value==="string"&&modes.some(item=>item.id===value);}
 
-export default function AITutor() {
-  const location = useLocation();
-  const incomingContext = typeof location.state?.context === "string" ? location.state.context : "";
-  const [mode, setMode] = useState<Mode>("tutor");
-  const [message, setMessage] = useState("");
-  const [context, setContext] = useState(incomingContext);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [configured, setConfigured] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetch(apiUrl("/api/ai/status"), { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => setConfigured(Boolean(data.configured)))
-      .catch(() => setConfigured(false));
-  }, []);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const question = message.trim();
-    if (!question || busy) return;
-    setError("");
-    setMessages((current) => [...current, { role: "user", text: question }]);
-    setMessage("");
-    setBusy(true);
-    try {
-      const response = await fetch(apiUrl("/api/ai/chat"), {
-        method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, message: question, context: context.trim() }),
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.message || "Could not get an AI response.");
-      setMessages((current) => [...current, { role: "assistant", text: payload.answer }]);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Something went wrong. Please try again.");
-    } finally { setBusy(false); }
-  }
-
-  return <main className="ai-page">
-    <div className="ai-topbar"><Link to="/dashboard" className="ai-back"><ArrowLeft size={16} /> Dashboard</Link><span className="ai-brand"><span>R</span> RECALLDOSE</span></div>
-    <section className="ai-shell">
-      <div className="ai-heading"><span className="ai-eyebrow"><Sparkles size={14} /> PERSONALIZED STUDY SPACE</span><h1>{prompts[mode].title}</h1><p>Learn in context, ask follow-up questions, and connect explanations to your course material.</p></div>
-      <div className="ai-mode-tabs" role="tablist" aria-label="AI study mode">
-        {(["tutor", "explain", "mnemonic"] as Mode[]).map((item) => <button type="button" role="tab" aria-selected={mode === item} className={mode === item ? "active" : ""} key={item} onClick={() => setMode(item)}>{item === "tutor" ? <Bot size={17} /> : item === "explain" ? <BookOpen size={17} /> : <Brain size={17} />}{prompts[item].label}</button>)}
-      </div>
-      {configured === false && <div className="ai-notice"><Stethoscope size={18} /><div><strong>AI provider setup required</strong><p>The interface is ready, but responses will work after AI_API_KEY is configured in the server environment. Never put the key in frontend variables.</p></div></div>}
-      <div className="ai-chat" aria-live="polite">
-        {messages.length === 0 ? <div className="ai-empty"><div className="ai-orb"><Bot size={28} /></div><h2>What are you studying today?</h2><p>Ask a question, or add a short excerpt from your lecture to ground the explanation.</p><div className="ai-suggestions">{["Explain a difficult concept step by step", "Compare two similar drug classes", "Make a short self-test from my notes"].map((suggestion) => <button type="button" key={suggestion} onClick={() => setMessage(suggestion)}>{suggestion}</button>)}</div></div> : messages.map((item, index) => <article key={`${item.role}-${index}`} className={`ai-message ${item.role}`}><span className="ai-message-icon">{item.role === "assistant" ? <Bot size={16} /> : "You"}</span><div className="ai-message-text">{item.text}</div></article>)}
-        {busy && <div className="ai-thinking"><span /><span /><span /> Thinking through your question…</div>}
-      </div>
-      <form className="ai-compose" onSubmit={(event) => void submit(event)}>
-        <label htmlFor="ai-context">Course notes or source context <span>optional · avoid personal patient information</span></label>
-        <textarea id="ai-context" value={context} onChange={(event) => setContext(event.target.value)} rows={3} maxLength={8000} placeholder="Paste a short excerpt from your lecture, including a reference or page number if available…" />
-        <div className="ai-compose-row"><textarea aria-label="Your question" value={message} onChange={(event) => setMessage(event.target.value)} rows={2} maxLength={4000} placeholder={prompts[mode].placeholder} required /><button type="submit" disabled={busy || message.trim().length < 2} aria-label="Send question">{busy ? "…" : <Send size={18} />}</button></div>
-        {error && <p className="ai-error" role="alert">{error}</p>}
-        <p className="ai-disclaimer">Educational support only, not medical advice. Verify clinical and medication facts with trusted course references. Chats are not saved by this feature.</p>
-      </form>
-    </section>
-  </main>;
+export default function AITutor(){
+ const location=useLocation();
+ const navigate=useNavigate();
+ const incomingContext=typeof location.state?.context==="string"?location.state.context:"";
+ const initialMode:Mode=isMode(location.state?.mode)?location.state.mode:"tutor";
+ const [mode,setMode]=useState<Mode>(initialMode);
+ const incomingMessage=typeof location.state?.message==="string"?location.state.message:"";
+ const [message,setMessage]=useState(incomingMessage);
+ const [context,setContext]=useState(incomingContext);
+ const [examDifficulty,setExamDifficulty]=useState<ExamDifficulty>("university");
+ const [examCount,setExamCount]=useState("10");
+ const [questionFormat,setQuestionFormat]=useState("match");
+ const [messages,setMessages]=useState<Message[]>([]);
+ const [busy,setBusy]=useState(false);
+ const [error,setError]=useState("");
+ const activeMode=modes.find(item=>item.id===mode)||modes[0];
+ async function submit(event:FormEvent){event.preventDefault();const question=message.trim();if(!question||busy)return;const requestMessage=mode==="exam-coach"?`${question}\n\nExam settings: generate ${examCount} questions; question format: ${questionFormat==="match"&&examDifficulty==="university"?"match the uploaded reference":questionFormat==="match"?"mixed question types":questionFormat}.` : question;if(mode==="exam-coach"&&examDifficulty==="university"&&context.trim().length<80){setError("For university-style questions, upload a previous exam or lecture file first so the AI can follow its style.");return;}setError("");setMessages(current=>[...current,{role:"user",text:question}]);setMessage("");setBusy(true);try{const response=await fetch(apiUrl("/api/ai/chat"),{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode,message:requestMessage,history:messages.slice(-10),context:mode==="exam-coach"&&examDifficulty!=="university"?"":context.trim(),examDifficulty})});const payload=await response.json().catch(()=>({}));if(!response.ok)throw new Error(payload.message||"Could not get an AI response.");setMessages(current=>[...current,{role:"assistant",text:payload.answer}]);}catch(cause){setError(cause instanceof Error?cause.message:"Something went wrong. Please try again.");}finally{setBusy(false);}}
+ return <main className="ai-page">
+  <div className="ai-topbar"><Link to="/dashboard" className="ai-back"><ArrowLeft size={16}/> Dashboard</Link><span className="ai-brand"><span>R</span> RECALLDOSE AI</span></div>
+  <section className="ai-shell">
+   <div className="ai-heading"><span className="ai-eyebrow"><Sparkles size={14}/> MULTI-MODE MEDICAL LEARNING</span><h1>{activeMode.title}</h1><p>{activeMode.description} Choose a specialist learning mode. Dr. Subject teaches from your exact mistakes, explains the right reasoning and gives you a fresh check question.</p></div>
+   <div className="ai-mode-grid" role="tablist" aria-label="AI learning modules">{modes.map(item=>{const Icon=item.icon;return <button type="button" role="tab" aria-selected={mode===item.id} className={mode===item.id?"active":""} key={item.id} onClick={()=>setMode(item.id)}><span className="ai-mode-icon"><Icon size={18}/></span><strong>{item.label}</strong><small>{item.description}</small></button>;})}</div>
+   <div className="ai-notice"><Sparkles size={18}/><div><strong>Your AI study team is ready</strong><p>Specialist tools run through a secure server-side model pool. If one AI provider is unavailable, RecallDose automatically tries the next one without interrupting your study flow.</p></div></div>
+   <div className="ai-chat" aria-live="polite">{messages.length===0?<div className="ai-empty"><div className="ai-orb"><WandSparkles size={28}/></div><h2>What do you want to work on?</h2><p>Choose a specialist module above, add lecture context if available, and ask your question. For a personal lesson, open Dr. Subject from your Mistake Bank.</p><div className="ai-suggestions">{["Explain a difficult concept step by step","Compare two similar drug classes","Create 8 flashcards from my lecture","Build a quiz with answers and explanations"].map(suggestion=><button type="button" key={suggestion} onClick={()=>setMessage(suggestion)}>{suggestion}</button>)}</div></div>:messages.map((item,index)=><article key={`${item.role}-${index}`} className={`ai-message ${item.role}`}><span className="ai-message-icon">{item.role==="assistant"?<Sparkles size={16}/>:"You"}</span><div className="ai-message-text">{item.text}</div></article>)}{busy&&<div className="ai-thinking"><span/><span/><span/> Working on your study request…</div>}</div>
+   <form className="ai-compose" onSubmit={event=>void submit(event)}>{mode==="exam-coach"&&<div className="ai-exam-level"><strong>Choose your exam level</strong><div className="ai-exam-level-options"><button type="button" className={examDifficulty==="university"?"active":""} onClick={()=>setExamDifficulty("university")}>University level <small>Match an uploaded file</small></button><button type="button" className={examDifficulty==="medium"?"active":""} onClick={()=>setExamDifficulty("medium")}>Medium <small>AI-generated practice</small></button><button type="button" className={examDifficulty==="hard"?"active":""} onClick={()=>setExamDifficulty("hard")}>Hard <small>Deeper application</small></button></div><p>{examDifficulty==="university"?"Upload a previous exam or lecture. The AI will study its question style and create a new exam in a similar format.":examDifficulty==="medium"?"The AI will create a balanced exam from the topic you enter below. No file is required.":"The AI will create challenging questions that test analysis, application and connections between concepts. No file is required."}</p><div className="ai-exam-settings"><label>Number of questions<select value={examCount} onChange={event=>setExamCount(event.target.value)}><option value="10">10 questions</option><option value="20">20 questions</option><option value="30">30 questions</option></select></label><label>Question format<select value={questionFormat} onChange={event=>setQuestionFormat(event.target.value)}><option value="match">Match uploaded file / mixed</option><option value="MCQ only">MCQ only</option><option value="True / False only">True / False only</option><option value="Short answer and essay">Short answer / essay</option><option value="Mixed MCQ, True / False and written">Mixed questions</option></select></label></div></div>}{(mode!=="exam-coach"||examDifficulty==="university")&&<label htmlFor="ai-context">{mode==="exam-coach"?"Upload reference / paste text":"Course notes or source context"} <span>{mode==="exam-coach"?"required only for university level":"optional · never paste identifiable patient information"}</span></label>}
+   {mode==="exam-coach"&&examDifficulty==="university"&&<div className="ai-source-required"><strong>For a realistic university-level exam</strong><p>Give the AI at least one section from your lecture or a previous exam from your faculty. It will analyze the wording, depth, difficulty and question patterns, then create new practice questions in a similar style. It will not copy or claim generated questions are authentic past-paper questions.</p><button type="button" onClick={()=>navigate("/upload-ocr",{state:{returnTo:"/ai-tutor",mode:"exam-coach"}})}><ClipboardList size={16}/> Upload lecture section / previous exam</button><small>Supported uploads: text PDF, scanned image and text files. Review extracted text before sending it to AI.</small></div>}
+   {(mode!=="exam-coach"||examDifficulty==="university")&&<textarea id="ai-context" value={context} onChange={event=>setContext(event.target.value)} rows={4} maxLength={10000} placeholder={mode==="exam-coach"?"You can also paste text from your previous exam or lecture here…":"Paste a short excerpt from your lecture, a textbook topic or Recall Twin study metrics…"}/>}<div className="ai-compose-row"><textarea aria-label="Your question" value={message} onChange={event=>setMessage(event.target.value)} rows={2} maxLength={4000} placeholder={activeMode.placeholder} required/><button type="submit" disabled={busy||message.trim().length<2||(mode==="exam-coach"&&examDifficulty==="university"&&context.trim().length<80)} aria-label="Send question">{busy?"…":<Send size={18}/>}</button></div>{error&&<p className="ai-error" role="alert">{error}</p>}<p className="ai-disclaimer">Educational support only, not medical advice. Verify medical facts with trusted current course references. AI output is not automatically approved learning content.</p></form>
+  </section>
+ </main>;
 }

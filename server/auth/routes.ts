@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
-import { getSessionUser } from "./sessionUser";
-import { registerUser } from "./register";
-import { loginUser } from "./login";
-import { createSession } from "./session";
+import { db } from "../db.js";
+import { getSessionUser } from "./sessionUser.js";
+import { registerUser } from "./register.js";
+import { loginUser } from "./login.js";
+import { createSession } from "./session.js";
+import { isPasswordRecoveryConfigured, requestPasswordReset, resetPassword } from "./password-reset.js";
 
 function getSessionTokenFromCookie(cookieHeader?: string) {
   if (!cookieHeader) return null;
@@ -41,6 +42,27 @@ function setSessionCookie(token: string) {
 }
 
 const router = Router();
+const passwordResetRequests = new Map<string, { count: number; resetAt: number }>();
+function allowPasswordResetRequest(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now();
+  const current = passwordResetRequests.get(key);
+  if (!current || current.resetAt <= now) {
+    passwordResetRequests.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (current.count >= limit) return false;
+  current.count += 1;
+  if (passwordResetRequests.size > 10000) {
+    for (const [entry, value] of passwordResetRequests) {
+      if (value.resetAt <= now) passwordResetRequests.delete(entry);
+    }
+  }
+  return true;
+}
+
+const resetRequestMessage =
+  "If an account exists for that email, a password reset link will be sent shortly.";
+
 
 router.post("/register", async (req, res) => {
   try {
@@ -99,6 +121,75 @@ router.post("/login", async (req, res) => {
 });
 
 
+
+router.post("/forgot-password", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return res.status(400).json({ message: "Please enter a valid email address." });
+  }
+
+  const ip = req.ip || req.socket.remoteAddress || "unknown";
+  const ipAllowed = allowPasswordResetRequest("ip:" + ip, 20, 60 * 60 * 1000);
+  const emailAllowed = allowPasswordResetRequest("email:" + email, 4, 60 * 60 * 1000);
+  if (!ipAllowed || !emailAllowed) {
+    return res.json({ message: resetRequestMessage });
+  }
+
+  if (!isPasswordRecoveryConfigured()) {
+    console.error("Password recovery is not configured. Set PASSWORD_RESET_SECRET, PUBLIC_APP_URL, RESEND_API_KEY, and RESEND_FROM_EMAIL.");
+    return res.status(503).json({
+      message: "Password recovery is temporarily unavailable. Please try again later.",
+    });
+  }
+
+  try {
+    const developmentResetUrl = await requestPasswordReset(email);
+    return res.json({
+      message: resetRequestMessage,
+      ...(developmentResetUrl && process.env.NODE_ENV !== "production"
+        ? { developmentResetUrl }
+        : {}),
+    });
+  } catch (error) {
+    console.error("POST /api/auth/forgot-password failed:", error instanceof Error ? error.message : "Unknown error");
+    return res.status(500).json({
+      message: "Could not process the request right now. Please try again later.",
+    });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  const token = typeof req.body?.token === "string" ? req.body.token : "";
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+  const ip = req.ip || req.socket.remoteAddress || "unknown";
+  if (!allowPasswordResetRequest("reset:" + ip, 30, 15 * 60 * 1000)) {
+    return res.status(429).json({ message: "Too many attempts. Request a new reset link later." });
+  }
+  if (!token || token.length > 2048) {
+    return res.status(400).json({ message: "This password reset link is invalid or has expired. Request a new one." });
+  }
+  if (password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
+    return res.status(400).json({ message: "Password must be between 8 and 72 UTF-8 bytes." });
+  }
+
+  try {
+    const updated = await resetPassword(token, password);
+    if (!updated) {
+      return res.status(400).json({ message: "This password reset link is invalid or has expired. Request a new one." });
+    }
+    return res.json({ message: "Your password has been updated. Please sign in with your new password." });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not reset password.";
+    if (message.startsWith("Password must be")) {
+      return res.status(400).json({ message });
+    }
+    console.error("POST /api/auth/reset-password failed:", message);
+    return res.status(500).json({ message: "Could not reset your password. Please try again." });
+  }
+});
+
 router.post("/logout", async (req, res) => {
   try {
     const token = getSessionTokenFromCookie(req.headers.cookie);
@@ -121,6 +212,76 @@ router.post("/logout", async (req, res) => {
   } catch (error) {
     console.error("POST /api/auth/logout error:", error);
     return res.status(500).json({ message: "Could not sign out. Please try again." });
+  }
+});
+
+
+router.get("/profile", async (req, res) => {
+  try {
+    const token = getSessionTokenFromCookie(req.headers.cookie);
+    const user = token ? await getSessionUser(token) : null;
+    if (!user) return res.status(401).json({ message: "Please sign in." });
+    const profile = await db.orm.public.Profile.where({ userId: user.id }).first();
+    return res.json({
+      user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, emailVerified: user.emailVerified },
+      profile: profile ? {
+        university: profile.university,
+        faculty: profile.faculty,
+        year: profile.year,
+        specialization: profile.specialization,
+      } : { university: "", faculty: "", year: "", specialization: "" },
+    });
+  } catch (error) {
+    console.error("GET /api/auth/profile error:", error);
+    return res.status(500).json({ message: "Could not load your profile." });
+  }
+});
+
+router.put("/profile", async (req, res) => {
+  try {
+    const token = getSessionTokenFromCookie(req.headers.cookie);
+    const user = token ? await getSessionUser(token) : null;
+    if (!user) return res.status(401).json({ message: "Please sign in." });
+    const body = req.body ?? {};
+    const fields = ["firstName", "lastName", "university", "faculty", "year", "specialization"] as const;
+    for (const field of fields) {
+      if (body[field] !== undefined && (typeof body[field] !== "string" || body[field].length > 160)) {
+        return res.status(400).json({ message: "Profile fields must be text with a maximum of 160 characters." });
+      }
+    }
+    const firstName = typeof body.firstName === "string" ? body.firstName.trim() : user.firstName;
+    const lastName = typeof body.lastName === "string" ? body.lastName.trim() : user.lastName;
+    if (!firstName || !lastName || firstName.length > 80 || lastName.length > 80) {
+      return res.status(400).json({ message: "First and last name are required (maximum 80 characters each)." });
+    }
+    const profileValues = {
+      university: typeof body.university === "string" ? body.university.trim() : "",
+      faculty: typeof body.faculty === "string" ? body.faculty.trim() : "",
+      year: typeof body.year === "string" ? body.year.trim() : "",
+      specialization: typeof body.specialization === "string" ? body.specialization.trim() : "",
+    };
+    const existing = await db.orm.public.Profile.where({ userId: user.id }).first();
+    if (existing) {
+      await db.orm.public.Profile.where({ id: existing.id }).update({
+        university: profileValues.university || null,
+        faculty: profileValues.faculty || null,
+        year: profileValues.year || null,
+        specialization: profileValues.specialization || null,
+      });
+    } else {
+      await db.orm.public.Profile.create({
+        userId: user.id,
+        university: profileValues.university || null,
+        faculty: profileValues.faculty || null,
+        year: profileValues.year || null,
+        specialization: profileValues.specialization || null,
+      });
+    }
+    await db.orm.public.User.where({ id: user.id }).update({ firstName, lastName });
+    return res.json({ message: "Profile saved.", user: { id: user.id, email: user.email, firstName, lastName, role: user.role, emailVerified: user.emailVerified }, profile: profileValues });
+  } catch (error) {
+    console.error("PUT /api/auth/profile error:", error);
+    return res.status(500).json({ message: "Could not save your profile. Please try again." });
   }
 });
 

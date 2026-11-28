@@ -1,5 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
+import { db } from "../db.js";
+import { recordStudyActivity } from "../activity/service.js";
 
 type UpdateProgressInput = {
   userId: string;
@@ -17,6 +18,8 @@ export async function updateProgress(
     topic,
     isCorrect,
   } = input;
+
+  await recordStudyActivity({ userId, answered: true, isCorrect });
 
   if (!subject) {
     return null;

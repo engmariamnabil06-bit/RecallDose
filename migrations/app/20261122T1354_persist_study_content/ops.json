@@ -1,0 +1,398 @@
+[
+  {
+    "id": "table.StudyCard",
+    "label": "Create table \"StudyCard\"",
+    "summary": "Creates table \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"StudyCard\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"StudyCard\"",
+        "sql": "CREATE TABLE \"public\".\"StudyCard\" (\n  \"back\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"front\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"subject\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"StudyCard\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.StudyNote",
+    "label": "Create table \"StudyNote\"",
+    "summary": "Creates table \"StudyNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "StudyNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"StudyNote\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"StudyNote\"",
+        "sql": "CREATE TABLE \"public\".\"StudyNote\" (\n  \"content\" text NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" text NOT NULL,\n  \"subject\" text NOT NULL,\n  \"title\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"userId\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"StudyNote\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyCard.StudyCard_userId_createdAt_idx_f726f04a",
+    "label": "Create index \"StudyCard_userId_createdAt_idx_f726f04a\" on \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyCard_userId_createdAt_idx_f726f04a",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyCard_userId_createdAt_idx_f726f04a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_createdAt_idx_f726f04a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyCard_userId_createdAt_idx_f726f04a\"",
+        "sql": "CREATE INDEX \"StudyCard_userId_createdAt_idx_f726f04a\" ON \"public\".\"StudyCard\" (\"userId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyCard_userId_createdAt_idx_f726f04a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_createdAt_idx_f726f04a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyCard.StudyCard_userId_idx_a489d58a",
+    "label": "Create index \"StudyCard_userId_idx_a489d58a\" on \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyCard_userId_idx_a489d58a",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyCard_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyCard_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"StudyCard_userId_idx_a489d58a\" ON \"public\".\"StudyCard\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyCard_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyCard.StudyCard_userId_subject_idx_16f0a0ca",
+    "label": "Create index \"StudyCard_userId_subject_idx_16f0a0ca\" on \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyCard_userId_subject_idx_16f0a0ca",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyCard_userId_subject_idx_16f0a0ca\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_subject_idx_16f0a0ca\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyCard_userId_subject_idx_16f0a0ca\"",
+        "sql": "CREATE INDEX \"StudyCard_userId_subject_idx_16f0a0ca\" ON \"public\".\"StudyCard\" (\"userId\", \"subject\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyCard_userId_subject_idx_16f0a0ca\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyCard_userId_subject_idx_16f0a0ca\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyNote.StudyNote_userId_idx_a489d58a",
+    "label": "Create index \"StudyNote_userId_idx_a489d58a\" on \"StudyNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyNote_userId_idx_a489d58a",
+        "table": "StudyNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyNote_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyNote_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"StudyNote_userId_idx_a489d58a\" ON \"public\".\"StudyNote\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyNote_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyNote.StudyNote_userId_subject_idx_16f0a0ca",
+    "label": "Create index \"StudyNote_userId_subject_idx_16f0a0ca\" on \"StudyNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyNote_userId_subject_idx_16f0a0ca",
+        "table": "StudyNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyNote_userId_subject_idx_16f0a0ca\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote_userId_subject_idx_16f0a0ca\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyNote_userId_subject_idx_16f0a0ca\"",
+        "sql": "CREATE INDEX \"StudyNote_userId_subject_idx_16f0a0ca\" ON \"public\".\"StudyNote\" (\"userId\", \"subject\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyNote_userId_subject_idx_16f0a0ca\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote_userId_subject_idx_16f0a0ca\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.StudyNote.StudyNote_userId_updatedAt_idx_42f5280d",
+    "label": "Create index \"StudyNote_userId_updatedAt_idx_42f5280d\" on \"StudyNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "StudyNote_userId_updatedAt_idx_42f5280d",
+        "table": "StudyNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"StudyNote_userId_updatedAt_idx_42f5280d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote_userId_updatedAt_idx_42f5280d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"StudyNote_userId_updatedAt_idx_42f5280d\"",
+        "sql": "CREATE INDEX \"StudyNote_userId_updatedAt_idx_42f5280d\" ON \"public\".\"StudyNote\" (\"userId\", \"updatedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"StudyNote_userId_updatedAt_idx_42f5280d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"StudyNote_userId_updatedAt_idx_42f5280d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.StudyCard.StudyCard_userId_fkey",
+    "label": "Add foreign key \"StudyCard_userId_fkey\" on \"StudyCard\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "StudyCard_userId_fkey",
+        "table": "StudyCard"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"StudyCard_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyCard_userId_fkey",
+          "public",
+          "\"public\".\"StudyCard\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"StudyCard_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"StudyCard\"\nADD CONSTRAINT \"StudyCard_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"StudyCard_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyCard_userId_fkey",
+          "public",
+          "\"public\".\"StudyCard\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.StudyNote.StudyNote_userId_fkey",
+    "label": "Add foreign key \"StudyNote_userId_fkey\" on \"StudyNote\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "StudyNote_userId_fkey",
+        "table": "StudyNote"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"StudyNote_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyNote_userId_fkey",
+          "public",
+          "\"public\".\"StudyNote\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"StudyNote_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"StudyNote\"\nADD CONSTRAINT \"StudyNote_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"StudyNote_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "StudyNote_userId_fkey",
+          "public",
+          "\"public\".\"StudyNote\""
+        ]
+      }
+    ]
+  }
+]

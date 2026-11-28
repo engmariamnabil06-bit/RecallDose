@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -108,6 +108,10 @@ type RecallTwin = {
     priority: number;
     knowledgeState: string;
   }>;
+  riskAreas: Array<{ subject: string; topic: string | null; accuracy: number; questionsSolved: number; mistakeCount: number; knowledgeState: string; daysSinceActivity: number; riskScore: number; reason: string; nextAction: string }>;
+  nextActions: Array<{ subject: string; topic: string | null; riskScore: number; reason: string; action: string; daysSinceActivity: number }>;
+  generatedAt: string;
+  methodology: string;
   unresolvedMistakes: number;
   weakSpotCount: number;
 };
@@ -289,6 +293,18 @@ export function MistakesPage() {
               {mistake.selectedAnswer && <p><strong>Your answer:</strong> {mistake.selectedAnswer}</p>}
               {mistake.correctAnswer && <p><strong>Correct answer:</strong> {mistake.correctAnswer}</p>}
               {mistake.explanation && <p className="insight-explanation">{mistake.explanation}</p>}
+              <Link to="/ai-tutor" className="feature-primary-button" state={{
+                mode: "subject-doctor",
+                message: "Teach me this mistake like my personal subject lecturer. Help me understand the concept, not just memorize the answer. Then give me a new similar question without showing its answer first.",
+                context: [
+                  "MY SAVED MISTAKE",
+                  `Question: ${mistake.questionText}`,
+                  `My answer: ${mistake.selectedAnswer || "Not recorded"}`,
+                  `Correct answer: ${mistake.correctAnswer || "Not recorded"}`,
+                  `Existing explanation: ${mistake.explanation || "No explanation saved"}`,
+                  "Please identify the misconception and teach the underlying topic step by step."
+                ].join("\\n")
+              }}>Study this with Dr. Subject <ArrowRight size={16}/></Link>
             </article>
           ))}
         </section>
@@ -356,12 +372,22 @@ export function DailyDosePage() {
 
 export function RecallTwinPage() {
   const { data, loading, error } = useApiData<RecallTwin>("/api/recall-twin");
+  const aiContext = data ? JSON.stringify({
+    overview: data.overview,
+    knowledgeStates: data.knowledgeStates,
+    strongestAreas: data.strongestAreas,
+    priorityAreas: data.weakestAreas,
+    riskAreas: data.riskAreas,
+    nextActions: data.nextActions,
+    unresolvedMistakes: data.unresolvedMistakes,
+    methodology: data.methodology,
+  }, null, 2) : "";
 
   return (
     <PageShell
       eyebrow="RECALL TWIN"
       title="A clearer picture of your recall."
-      description="This first version summarizes saved performance data using transparent rules; it does not use an AI model or predict exam outcomes."
+      description="Your learning profile combines saved performance with transparent study-priority indicators. Ask AI to turn it into a personal action plan."
     >
       <LoadState loading={loading} error={error} />
       {data && (
@@ -370,19 +396,27 @@ export function RecallTwinPage() {
             <article className="insight-stat"><span>Overall accuracy</span><strong>{data.overview.overallAccuracy}%</strong><small>{data.overview.totalQuestions} answered</small></article>
             <article className="insight-stat"><span>Unresolved mistakes</span><strong>{data.unresolvedMistakes}</strong><small>Recorded wrong answers</small></article>
             <article className="insight-stat"><span>Active weak spots</span><strong>{data.weakSpotCount}</strong><small>Topics prioritized for review</small></article>
-            <article className="insight-stat"><span>Mastered areas</span><strong>{data.knowledgeStates.mastered}</strong><small>Rule-based classification</small></article>
+            <article className="insight-stat"><span>Current study state</span><strong>{data.knowledgeStates.mastered + data.knowledgeStates.stable}</strong><small>Mastered or stable areas</small></article>
           </section>
           <section className="insight-two-column">
             <div className="insight-panel">
-              <div className="insight-panel-title"><Brain size={19} /><h2>Strongest areas</h2></div>
-              {data.strongestAreas.length ? data.strongestAreas.map((area, index) => <div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic || area.subject}</strong><span>{area.subject}</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">Answer more questions to identify stable topics.</p>}
+              <div className="insight-panel-title"><Brain size={19}/><h2>Strongest areas</h2></div>
+              {data.strongestAreas.length ? data.strongestAreas.map((area,index)=><div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic||area.subject}</strong><span>{area.subject} · {area.knowledgeState.toLowerCase()}</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">Answer more questions to identify stable topics.</p>}
             </div>
             <div className="insight-panel">
-              <div className="insight-panel-title"><AlertTriangle size={19} /><h2>Priority areas</h2></div>
-              {data.weakestAreas.length ? data.weakestAreas.map((area, index) => <div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic}</strong><span>{area.subject} · {area.mistakeCount} wrong</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">No weak topics detected yet.</p>}
+              <div className="insight-panel-title"><AlertTriangle size={19}/><h2>Priority areas</h2></div>
+              {data.weakestAreas.length ? data.weakestAreas.map((area,index)=><div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic}</strong><span>{area.subject} · {area.mistakeCount} wrong · priority {area.priority}/100</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">No weak topics detected yet.</p>}
             </div>
           </section>
-          <Link to="/recall" className="feature-primary-button">Start a recall session <ArrowRight size={16} /></Link>
+          <section className="insight-panel">
+            <div className="insight-panel-title"><Target size={19}/><h2>Recall risk & next best actions</h2></div>
+            {data.nextActions.length ? <div className="insight-review-list">{data.nextActions.map((item,index)=><article className="insight-review-item" key={`${item.subject}-${item.topic}-${index}`}><div className="insight-review-copy"><span className="feature-eyebrow">{item.subject} · priority indicator {item.riskScore}/100</span><h3>{item.topic||item.subject}</h3><p>{item.reason} · {item.daysSinceActivity} day(s) since last activity</p><p>{item.action}</p></div></article>)}</div> : <p className="insight-empty">Complete a few recall questions in each subject to build a useful topic history.</p>}
+            <p className="insight-note">{data.methodology}</p>
+          </section>
+          <div className="insight-recall-actions">
+            <Link to="/ai-tutor" state={{ mode: "recall-plan", context: aiContext }} className="feature-primary-button">Build my AI study plan <ArrowRight size={16}/></Link>
+            <Link to="/recall" className="feature-secondary-button">Start a recall session <ArrowRight size={16}/></Link>
+          </div>
         </>
       )}
     </PageShell>
@@ -390,54 +424,94 @@ export function RecallTwinPage() {
 }
 
 export function ProfilePage() {
-  const { data, loading, error } = useApiData<{ user: User }>("/api/auth/me");
+  type ProfilePayload = {
+    user: User;
+    profile: { university: string; faculty: string; year: string; specialization: string };
+  };
+  const { data, loading, error } = useApiData<ProfilePayload>("/api/auth/profile");
   const navigate = useNavigate();
+  const [form, setForm] = useState({ firstName: "", lastName: "", university: "", faculty: "", year: "", specialization: "" });
+  const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    if (!data) return;
+    setForm({
+      firstName: data.user.firstName || "",
+      lastName: data.user.lastName || "",
+      university: data.profile.university || "",
+      faculty: data.profile.faculty || "",
+      year: data.profile.year || "",
+      specialization: data.profile.specialization || "",
+    });
+  }, [data]);
+
+  async function saveProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true); setMessage(""); setActionError("");
+    try {
+      const response = await fetch(apiUrl("/api/auth/profile"), {
+        method: "PUT", credentials: "include", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "Could not save your profile.");
+      setMessage(payload.message || "Profile saved.");
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : "Could not save your profile.");
+    } finally { setSaving(false); }
+  }
 
   async function signOut() {
-    setSigningOut(true);
-    setSignOutError(null);
+    setSigningOut(true); setActionError("");
     try {
       const response = await fetch(apiUrl("/api/auth/logout"), { method: "POST", credentials: "include" });
       if (!response.ok) throw new Error("Could not sign out. Please try again.");
       navigate("/login", { replace: true });
     } catch (cause) {
-      setSignOutError(cause instanceof Error ? cause.message : "Could not sign out.");
+      setActionError(cause instanceof Error ? cause.message : "Could not sign out.");
       setSigningOut(false);
     }
   }
 
   return (
-    <PageShell
-      eyebrow="YOUR ACCOUNT"
-      title="Your learning profile."
-      description="Your current account details. Editing academic details and changing passwords are not wired up yet."
-    >
+    <PageShell eyebrow="YOUR ACCOUNT" title="Your learning profile." description="Keep your academic context current so your learning space can be organized around your program.">
       <LoadState loading={loading} error={error} />
-      {data?.user && (
-        <section className="insight-panel insight-profile">
-          <div className="insight-profile-avatar">{`${data.user.firstName[0] ?? ""}${data.user.lastName[0] ?? ""}`.toUpperCase()}</div>
-          <div><h2>{data.user.firstName} {data.user.lastName}</h2><p>{data.user.email}</p></div>
-          <dl>
-            <div><dt>Account role</dt><dd>{data.user.role}</dd></div>
-            <div><dt>Email status</dt><dd>{data.user.emailVerified ? "Verified" : "Not verified"}</dd></div>
-          </dl>
-          {signOutError && <p className="insight-error" role="alert">{signOutError}</p>}
-          <button type="button" className="feature-primary-button" onClick={signOut} disabled={signingOut}>
-            <LogOut size={16} /> {signingOut ? "Signing out…" : "Sign out"}
-          </button>
-        </section>
-      )}
+      {data?.user && <>
+        <form className="insight-panel insight-profile" onSubmit={(event) => void saveProfile(event)}>
+          <div className="insight-profile-avatar">{`${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase()}</div>
+          <div><h2>{form.firstName || data.user.firstName} {form.lastName || data.user.lastName}</h2><p>{data.user.email}</p></div>
+          <div className="insight-profile-form">
+            <label>First name<input required maxLength={80} value={form.firstName} onChange={(event) => setForm((current) => ({ ...current, firstName: event.target.value }))}/></label>
+            <label>Last name<input required maxLength={80} value={form.lastName} onChange={(event) => setForm((current) => ({ ...current, lastName: event.target.value }))}/></label>
+            <label>University / institution<input maxLength={160} value={form.university} onChange={(event) => setForm((current) => ({ ...current, university: event.target.value }))}/></label>
+            <label>Faculty / program<input maxLength={160} value={form.faculty} onChange={(event) => setForm((current) => ({ ...current, faculty: event.target.value }))}/></label>
+            <label>Academic year<input maxLength={160} value={form.year} onChange={(event) => setForm((current) => ({ ...current, year: event.target.value }))}/></label>
+            <label>Specialization<input maxLength={160} value={form.specialization} onChange={(event) => setForm((current) => ({ ...current, specialization: event.target.value }))}/></label>
+          </div>
+          <dl><div><dt>Account role</dt><dd>{data.user.role}</dd></div><div><dt>Email status</dt><dd>{data.user.emailVerified ? "Verified" : "Not verified"}</dd></div></dl>
+          {message && <p className="insight-success" role="status">{message}</p>}
+          {actionError && <p className="insight-error" role="alert">{actionError}</p>}
+          <div className="insight-profile-actions"><button type="submit" className="feature-primary-button" disabled={saving}>{saving ? "Saving…" : "Save profile"}</button><button type="button" className="feature-secondary-button" onClick={() => void signOut()} disabled={signingOut}><LogOut size={16}/>{signingOut ? "Signing out…" : "Sign out"}</button></div>
+        </form>
+        <p className="insight-note">Your login email is read-only here. Email verification and changing the account email need a separate verified-email workflow.</p>
+      </>}
     </PageShell>
   );
 }
 
 export function ExamsPage() {
   type Exam = { id: string; title: string; description: string | null; subject: string | null; topic: string | null; durationMinutes: number | null };
-  type ExamQuestion = { id: string; text: string; subject: string | null; topic: string | null; options: Array<{ id: string; text: string }> };
-  type Result = { score: number; correctAnswers: number; wrongAnswers: number; skippedAnswers: number; totalQuestions: number };
+  type ActiveAttempt = Exam & { attemptId: string; examId: string; startedAt: string; totalQuestions: number };
+  type ExamQuestion = { id: string; text: string; subject: string | null; topic: string | null; selectedOptionId?: string | null; options: Array<{ id: string; text: string }> };
+  type Result = { score: number; correctAnswers: number; wrongAnswers: number; skippedAnswers: number; totalQuestions: number; review?: Array<{questionId:string;text:string;subject:string|null;topic:string|null;explanation:string|null;selectedAnswer:string|null;correctAnswer:string|null;isCorrect:boolean;skipped:boolean;sourceTitle:string|null;sourceReference:string|null;reviewed:boolean}> };
   const [exams, setExams] = useState<Exam[]>([]);
+  const [examHistory, setExamHistory] = useState<Array<{attemptId:string;title:string;subject:string|null;topic:string|null;score:number;correctAnswers:number;wrongAnswers:number;skippedAnswers:number;totalQuestions:number;completedAt:string}>>([]);
+  const [examAnalytics, setExamAnalytics] = useState<{totalExams:number;averageScore:number;bestScore:number;bySubject:Array<{subject:string;exams:number;averageScore:number}>}>({totalExams:0,averageScore:0,bestScore:0,bySubject:[]});
+  const [activeAttempts, setActiveAttempts] = useState<ActiveAttempt[]>([]);
   const [exam, setExam] = useState<Exam | null>(null);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
@@ -461,6 +535,33 @@ export function ExamsPage() {
     return () => { active = false; };
   }, []);
   useEffect(() => {
+    let active = true;
+    fetch(apiUrl("/api/exams/active"), { credentials: "include" })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.message || "Could not load active exam attempts.");
+        if (active) setActiveAttempts(Array.isArray(payload.attempts) ? payload.attempts : []);
+      })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Could not load active exam attempts.");
+      });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    fetch(apiUrl("/api/exams/history"), { credentials: "include" })
+      .then(async response => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.message || "Could not load exam analytics.");
+        if (active) {
+          setExamHistory(Array.isArray(payload.attempts) ? payload.attempts : []);
+          setExamAnalytics(payload.analytics || { totalExams: 0, averageScore: 0, bestScore: 0, bySubject: [] });
+        }
+      })
+      .catch(cause => { if (active) setError(cause instanceof Error ? cause.message : "Could not load exam analytics."); });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
     if (!startedAt || result) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
@@ -479,6 +580,35 @@ export function ExamsPage() {
       setStartedAt(new Date(payload.attempt.startedAt).getTime() || Date.now()); setNow(Date.now());
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not start this exam."); }
     finally { setBusy(false); }
+  }
+
+  async function resumeAttempt(item: ActiveAttempt) {
+    setBusy(true); setError(null); setSuccess(null); setResult(null);
+    try {
+      const response = await fetch(apiUrl(`/api/exams/${item.examId}/${item.attemptId}`), {
+        credentials: "include",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || "Could not resume this exam.");
+      const restoredQuestions: ExamQuestion[] = Array.isArray(payload.questions) ? payload.questions : [];
+      const restoredAnswers = Object.fromEntries(
+        restoredQuestions
+          .filter((question) => Boolean(question.selectedOptionId))
+          .map((question) => [question.id, question.selectedOptionId as string])
+      );
+      setExam(item);
+      setAttemptId(item.attemptId);
+      setQuestions(restoredQuestions);
+      setAnswers(restoredAnswers);
+      const parsedStart = Date.parse(payload.attempt?.startedAt || item.startedAt);
+      setStartedAt(Number.isFinite(parsedStart) ? parsedStart : Date.now());
+      setNow(Date.now());
+      setSuccess("Your previous exam attempt has been restored.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not resume this exam.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function chooseAnswer(question: ExamQuestion, optionId: string) {
@@ -501,6 +631,7 @@ export function ExamsPage() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.message || "Could not finish the exam.");
       setResult(payload.result); setSuccess("Your result has been saved.");
+      setActiveAttempts((current) => current.filter((attempt) => attempt.attemptId !== attemptId));
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not finish the exam."); }
     finally { setBusy(false); }
   }
@@ -511,9 +642,23 @@ export function ExamsPage() {
     <PageShell eyebrow="EXAM SIMULATOR" title={result ? "Your exam result." : exam ? exam.title : "Practice under exam conditions."} description={exam ? "Answers are saved to your account as you select them. Submit when you are ready." : "Timed exams use published exam records and active questions in the database. No demo scores are shown."}>
       {error && <p className="insight-error" role="alert">{error}</p>}
       {success && <p className="insight-success" role="status">{success}</p>}
-      {result ? <section className="insight-panel"><div className="insight-stat-grid"><article className="insight-stat"><span>Score</span><strong>{result.score}%</strong></article><article className="insight-stat"><span>Correct</span><strong>{result.correctAnswers}</strong></article><article className="insight-stat"><span>Incorrect</span><strong>{result.wrongAnswers}</strong></article><article className="insight-stat"><span>Skipped</span><strong>{result.skippedAnswers}</strong></article></div><p>Review your mistakes and use them to plan your next study session.</p><button type="button" className="feature-primary-button" onClick={leaveExam}>Back to exam list <ArrowRight size={16} /></button><Link to="/mistakes" className="feature-secondary-button">Review mistake bank</Link></section>
+      {result ? <section className="insight-panel"><div className="insight-stat-grid"><article className="insight-stat"><span>Score</span><strong>{result.score}%</strong></article><article className="insight-stat"><span>Correct</span><strong>{result.correctAnswers}</strong></article><article className="insight-stat"><span>Incorrect</span><strong>{result.wrongAnswers}</strong></article><article className="insight-stat"><span>Skipped</span><strong>{result.skippedAnswers}</strong></article></div><p>Review every answer below. Incorrect and skipped questions are also added to your Smart Mistake Bank.</p>
+      {result.review && <div className="insight-review-list">{result.review.map((item,index)=><article className="insight-panel" key={item.questionId}>
+        <div className="insight-panel-title"><span>{index+1}. {item.topic || item.subject || "Question"}</span><small>{item.reviewed ? "Reviewed source" : "Source review not recorded"}</small></div>
+        <h3>{item.text}</h3>
+        <p><strong>Your answer:</strong> {item.selectedAnswer || "Skipped"}</p>
+        <p><strong>Correct answer:</strong> {item.correctAnswer || "Not configured"}</p>
+        {item.explanation && <p className="insight-explanation">{item.explanation}</p>}<p className="insight-note">{item.reviewed && item.sourceReference ? "Source-linked and reviewed by RecallDose." : "Source review details are not available for this question."}{item.sourceTitle ? ` Source: ${item.sourceTitle}.` : ""}{item.sourceReference ? ` Reference: ${item.sourceReference}` : ""}</p>
+        <Link to="/ai-tutor" className="feature-secondary-button" state={{mode:"subject-doctor",message:"Teach me this exam mistake step by step, then test me with a similar question.",context:[`Question: ${item.text}`,`My answer: ${item.selectedAnswer || "Skipped"}`,`Correct answer: ${item.correctAnswer || "Not available"}`,`Explanation: ${item.explanation || "No explanation supplied"}`,`Subject: ${item.subject || "Not specified"}`,`Topic: ${item.topic || "Not specified"}`].join("\\n")}}>Review with Dr. Subject <ArrowRight size={16}/></Link>
+      </article>)}</div>}
+      <button type="button" className="feature-primary-button" onClick={leaveExam}>Back to exam list <ArrowRight size={16} /></button><Link to="/mistakes" className="feature-secondary-button">Review mistake bank</Link></section>
       : exam ? <section className="insight-panel"><div className="insight-dose-meta"><span><Clock3 size={16} /> {remainingSeconds === null ? "Untimed" : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2,"0")} remaining`}</span><span>{Object.keys(answers).length}/{questions.length} answered</span></div>{remainingSeconds === 0 && <p className="insight-error">Time is up. Submit to calculate your score.</p>}{questions.map((question,index) => <article className="insight-weakspot" key={question.id}><div className="insight-weakspot-top"><strong>{index + 1}. {question.text}</strong><span>{question.subject || exam.subject || "Exam"}</span></div><div className="exam-option-list">{question.options.map((option) => <button type="button" key={option.id} className={`exam-option ${answers[question.id] === option.id ? "selected" : ""}`} disabled={Boolean(answers[question.id]) || busy || result !== null} onClick={() => void chooseAnswer(question,option.id)}>{option.text}</button>)}</div>{answers[question.id] && <small>Answer saved</small>}</article>)}<button type="button" className="feature-primary-button" disabled={busy} onClick={() => void finishExam()}>{busy ? "Saving…" : "Submit exam and see result"} <ArrowRight size={16} /></button></section>
-      : <section className="insight-panel"><div className="insight-panel-title"><Clock3 size={19} /><h2>Available exams</h2></div>{loading ? <p className="insight-empty">Loading exams…</p> : exams.length === 0 ? <div className="insight-empty"><p>No published exams are available yet. Once reviewed questions and a published exam are added to the database, they will appear here.</p><Link to="/recall" className="feature-primary-button">Practice recall <ArrowRight size={16} /></Link></div> : exams.map((item) => <article className="insight-weakspot" key={item.id}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject,item.topic].filter(Boolean).join(" · ") || "Mixed questions"}</span></div><span>{item.durationMinutes ? `${item.durationMinutes} min` : "Untimed"}</span></div><p>{item.description || "A focused practice exam based on the active question bank."}</p><button type="button" className="feature-primary-button" disabled={busy} onClick={() => void startExam(item)}>{busy ? "Preparing…" : "Start exam"} <ArrowRight size={16} /></button></article>)}</section>}
+      : <><section className="insight-panel"><div className="insight-panel-title"><TrendingUp size={19}/><h2>Your exam analytics</h2></div>
+        <div className="insight-stat-grid"><article className="insight-stat"><span>Exams completed</span><strong>{examAnalytics.totalExams}</strong></article><article className="insight-stat"><span>Average score</span><strong>{examAnalytics.averageScore}%</strong></article><article className="insight-stat"><span>Best score</span><strong>{examAnalytics.bestScore}%</strong></article></div>{examAnalytics.bySubject.length > 0 && <div className="insight-review-list"><h3>Performance by subject</h3>{examAnalytics.bySubject.map(item=><div className="insight-subject" key={item.subject}><div className="insight-subject-top"><strong>{item.subject}</strong><span>{item.averageScore}% average · {item.exams} exams</span></div><div className="insight-meter"><span style={{width:`${item.averageScore}%`}}/></div></div>)}</div>}
+        {examHistory.length > 0 && <div className="insight-review-list"><h3>Recent exam history</h3>{examHistory.slice(0,8).map(item=><article className="insight-weakspot" key={item.attemptId}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject,item.topic].filter(Boolean).join(" · ")}</span></div><b>{item.score}%</b></div><small>{item.correctAnswers} correct · {item.wrongAnswers} wrong · {item.skippedAnswers} skipped · {new Date(item.completedAt).toLocaleDateString()}</small></article>)}</div>}
+      </section>
+      <section className="insight-panel"><div className="insight-panel-title"><Clock3 size={19} /><h2>Available exams</h2></div>
+        {activeAttempts.length > 0 && <div className="insight-active-attempts"><h3>Continue an active attempt</h3>{activeAttempts.map((item) => <article className="insight-weakspot" key={item.attemptId}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject, item.topic].filter(Boolean).join(" · ") || "Mixed questions"}</span></div><span>{item.totalQuestions} questions</span></div><p>Started {new Date(item.startedAt).toLocaleString()} · Your saved answers will be restored.</p><button type="button" className="feature-primary-button" disabled={busy} onClick={() => void resumeAttempt(item)}>{busy ? "Restoring…" : "Resume exam"} <ArrowRight size={16} /></button></article>)}</div>}{loading ? <p className="insight-empty">Loading exams…</p> : exams.length === 0 ? <div className="insight-empty"><p>No published exams are available yet. Once reviewed questions and a published exam are added to the database, they will appear here.</p><Link to="/recall" className="feature-primary-button">Practice recall <ArrowRight size={16} /></Link></div> : exams.map((item) => <article className="insight-weakspot" key={item.id}><div className="insight-weakspot-top"><div><strong>{item.title}</strong><span>{[item.subject,item.topic].filter(Boolean).join(" · ") || "Mixed questions"}</span></div><span>{item.durationMinutes ? `${item.durationMinutes} min` : "Untimed"}</span></div><p>{item.description || "A focused practice exam based on the active question bank."}</p><button type="button" className="feature-primary-button" disabled={busy} onClick={() => void startExam(item)}>{busy ? "Preparing…" : "Start exam"} <ArrowRight size={16} /></button></article>)}</section></>}
     </PageShell>
   );
 }
@@ -605,3 +750,4 @@ export function ReviewSchedulePage() {
     </PageShell>
   );
 }
+

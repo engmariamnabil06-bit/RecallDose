@@ -1,8 +1,9 @@
 
 import { Temporal } from "@js-temporal/polyfill";
-import { db } from "../db";
-import { updateProgress } from "../progress/service";
-import { detectWeakSpots } from "../weakspots/service";
+import { db } from "../db.js";
+import { updateProgress } from "../progress/service.js";
+import { detectWeakSpots } from "../weakspots/service.js";
+import { recordStudyActivity } from "../activity/service.js";
 
 type SubmitRecallAnswerInput = {
   userId: string;
@@ -182,6 +183,14 @@ export async function submitRecallAnswer(
         : {}),
       updatedAt: now,
     });
+
+  if (!updatedSession) {
+    throw new Error("Recall session could not be updated.");
+  }
+
+  if (isComplete) {
+    await recordStudyActivity({ userId, sessionCompleted: true });
+  }
 
   // Complete the linked Daily Dose only when all session questions
   // have been answered.

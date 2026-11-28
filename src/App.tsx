@@ -23,14 +23,20 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Recall from "./pages/Recall";
 import RecallSession from "./pages/RecallSession";
 import PharmaMemoryLab from "./pages/PharmaMemoryLab";
 import AITutor from "./pages/AITutor";
+import Plans from "./pages/Plans";
 import CurriculumExplorer from "./pages/CurriculumExplorer";
 import StudyTools from "./pages/StudyTools";
 import UploadAndOCR from "./pages/UploadAndOCR";
+import AdvancedTutor from "./pages/AdvancedTutor";
+import QuestionResources from "./pages/QuestionResources";
+import AdminQuestionBank from "./pages/AdminQuestionBank";
+import AdminExamBuilder from "./pages/AdminExamBuilder";
 import {
   DailyDosePage,
   ExamsPage,
@@ -78,6 +84,7 @@ function App() {
           element={<LandingPage />}
         />
 
+        <Route path="/plans" element={<Plans />} />
         <Route
           path="/login"
           element={<Login />}
@@ -92,10 +99,15 @@ function App() {
           path="/forgot-password"
           element={<ForgotPassword />}
         />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/curriculum" element={<ProtectedRoute><CurriculumExplorer /></ProtectedRoute>} />
         <Route path="/ai-tutor" element={<ProtectedRoute><AITutor /></ProtectedRoute>} />
         <Route path="/study-tools" element={<ProtectedRoute><StudyTools /></ProtectedRoute>} />
         <Route path="/upload-ocr" element={<ProtectedRoute><UploadAndOCR /></ProtectedRoute>} />
+        <Route path="/advanced-tutor" element={<ProtectedRoute><AdvancedTutor /></ProtectedRoute>} />
+        <Route path="/question-resources" element={<ProtectedRoute><QuestionResources /></ProtectedRoute>} />
+        <Route path="/admin/questions" element={<ProtectedRoute><AdminQuestionBank /></ProtectedRoute>} />
+        <Route path="/admin/exams" element={<ProtectedRoute><AdminExamBuilder /></ProtectedRoute>} />
 
         <Route
           path="/dashboard"
