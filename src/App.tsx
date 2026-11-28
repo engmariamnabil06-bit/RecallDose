@@ -29,6 +29,7 @@ import Recall from "./pages/Recall";
 import RecallSession from "./pages/RecallSession";
 import PharmaMemoryLab from "./pages/PharmaMemoryLab";
 import AITutor from "./pages/AITutor";
+import Plans from "./pages/Plans";
 import CurriculumExplorer from "./pages/CurriculumExplorer";
 import StudyTools from "./pages/StudyTools";
 import UploadAndOCR from "./pages/UploadAndOCR";
