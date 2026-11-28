@@ -293,6 +293,18 @@ export function MistakesPage() {
               {mistake.selectedAnswer && <p><strong>Your answer:</strong> {mistake.selectedAnswer}</p>}
               {mistake.correctAnswer && <p><strong>Correct answer:</strong> {mistake.correctAnswer}</p>}
               {mistake.explanation && <p className="insight-explanation">{mistake.explanation}</p>}
+              <Link to="/ai-tutor" className="feature-primary-button" state={{
+                mode: "subject-doctor",
+                message: "Teach me this mistake like my personal subject lecturer. Help me understand the concept, not just memorize the answer. Then give me a new similar question without showing its answer first.",
+                context: [
+                  "MY SAVED MISTAKE",
+                  `Question: ${mistake.questionText}`,
+                  `My answer: ${mistake.selectedAnswer || "Not recorded"}`,
+                  `Correct answer: ${mistake.correctAnswer || "Not recorded"}`,
+                  `Existing explanation: ${mistake.explanation || "No explanation saved"}`,
+                  "Please identify the misconception and teach the underlying topic step by step."
+                ].join("\\n")
+              }}>Study this with Dr. Subject <ArrowRight size={16}/></Link>
             </article>
           ))}
         </section>
