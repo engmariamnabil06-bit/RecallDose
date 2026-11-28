@@ -73,3 +73,12 @@ The persistent question-bank format currently supports single-choice, multiple-c
 - Planned Egypt payment routes remain Orange Cash and Fawry Yellow. Checkout is deliberately disabled; no money is collected and no subscription is represented as active.
 - Exact prices, plan quotas, provider merchant onboarding, verified webhooks, subscription persistence/entitlement enforcement and cancellation/refund flows remain future implementation requirements. See `PRODUCTION_READINESS.md`.
 
+
+
+## Exam Coach and membership refinement — 2026-11-28
+
+- Exam Coach now presents three explicit difficulty choices: University, Medium and Hard.
+- University mode requires a supplied reference file/text and uses it as a style template to create original, similar-format practice questions. Medium and Hard generate from the learner's requested topic without requiring a file.
+- The learner is prompted to provide faculty/program, subject, topic, question count and desired question types. Exam generation receives a larger response budget than ordinary chat.
+- Membership preview now proposes a 30-day all-features trial, followed by Student Plus and Pro. The trial is a planned offer, not an active entitlement; subscription checkout and backend entitlement enforcement are not yet active.
+- An ongoing essential free experience is planned after the trial. Monthly/yearly prices and exact usage allowances remain unannounced until operating costs and payment fees are validated.
