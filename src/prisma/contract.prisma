@@ -216,6 +216,7 @@ model Question {
   mistakes             Mistake[]
   topicRef             Topic?               @relation(fields: [topicId], references: [id], onDelete: SetNull)
   recallSessionQuestions RecallSessionQuestion[]
+  examQuestions          ExamQuestion[]
 
   @@index([subject])
   @@index([topic])
@@ -249,6 +250,23 @@ model Exam {
   updatedAt       temporal.updatedAt()
 
   attempts        ExamAttempt[]
+  questions       ExamQuestion[]
+}
+
+model ExamQuestion {
+  id           String   @id @default(uuid())
+  examId       String
+  questionId   String
+  questionOrder Int
+  createdAt    DateTime @default(now())
+
+  exam         Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question     Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, questionId])
+  @@unique([examId, questionOrder])
+  @@index([examId])
+  @@index([questionId])
 }
 
 model ExamAttempt {

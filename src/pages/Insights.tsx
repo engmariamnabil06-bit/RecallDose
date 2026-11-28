@@ -108,6 +108,10 @@ type RecallTwin = {
     priority: number;
     knowledgeState: string;
   }>;
+  riskAreas: Array<{ subject: string; topic: string | null; accuracy: number; questionsSolved: number; mistakeCount: number; knowledgeState: string; daysSinceActivity: number; riskScore: number; reason: string; nextAction: string }>;
+  nextActions: Array<{ subject: string; topic: string | null; riskScore: number; reason: string; action: string; daysSinceActivity: number }>;
+  generatedAt: string;
+  methodology: string;
   unresolvedMistakes: number;
   weakSpotCount: number;
 };
@@ -356,12 +360,22 @@ export function DailyDosePage() {
 
 export function RecallTwinPage() {
   const { data, loading, error } = useApiData<RecallTwin>("/api/recall-twin");
+  const aiContext = data ? JSON.stringify({
+    overview: data.overview,
+    knowledgeStates: data.knowledgeStates,
+    strongestAreas: data.strongestAreas,
+    priorityAreas: data.weakestAreas,
+    riskAreas: data.riskAreas,
+    nextActions: data.nextActions,
+    unresolvedMistakes: data.unresolvedMistakes,
+    methodology: data.methodology,
+  }, null, 2) : "";
 
   return (
     <PageShell
       eyebrow="RECALL TWIN"
       title="A clearer picture of your recall."
-      description="This first version summarizes saved performance data using transparent rules; it does not use an AI model or predict exam outcomes."
+      description="Your learning profile combines saved performance with transparent study-priority indicators. Ask AI to turn it into a personal action plan."
     >
       <LoadState loading={loading} error={error} />
       {data && (
@@ -370,19 +384,27 @@ export function RecallTwinPage() {
             <article className="insight-stat"><span>Overall accuracy</span><strong>{data.overview.overallAccuracy}%</strong><small>{data.overview.totalQuestions} answered</small></article>
             <article className="insight-stat"><span>Unresolved mistakes</span><strong>{data.unresolvedMistakes}</strong><small>Recorded wrong answers</small></article>
             <article className="insight-stat"><span>Active weak spots</span><strong>{data.weakSpotCount}</strong><small>Topics prioritized for review</small></article>
-            <article className="insight-stat"><span>Mastered areas</span><strong>{data.knowledgeStates.mastered}</strong><small>Rule-based classification</small></article>
+            <article className="insight-stat"><span>Current study state</span><strong>{data.knowledgeStates.mastered + data.knowledgeStates.stable}</strong><small>Mastered or stable areas</small></article>
           </section>
           <section className="insight-two-column">
             <div className="insight-panel">
-              <div className="insight-panel-title"><Brain size={19} /><h2>Strongest areas</h2></div>
-              {data.strongestAreas.length ? data.strongestAreas.map((area, index) => <div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic || area.subject}</strong><span>{area.subject}</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">Answer more questions to identify stable topics.</p>}
+              <div className="insight-panel-title"><Brain size={19}/><h2>Strongest areas</h2></div>
+              {data.strongestAreas.length ? data.strongestAreas.map((area,index)=><div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic||area.subject}</strong><span>{area.subject} · {area.knowledgeState.toLowerCase()}</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">Answer more questions to identify stable topics.</p>}
             </div>
             <div className="insight-panel">
-              <div className="insight-panel-title"><AlertTriangle size={19} /><h2>Priority areas</h2></div>
-              {data.weakestAreas.length ? data.weakestAreas.map((area, index) => <div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic}</strong><span>{area.subject} · {area.mistakeCount} wrong</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">No weak topics detected yet.</p>}
+              <div className="insight-panel-title"><AlertTriangle size={19}/><h2>Priority areas</h2></div>
+              {data.weakestAreas.length ? data.weakestAreas.map((area,index)=><div className="insight-compact-row" key={`${area.subject}-${area.topic}-${index}`}><div><strong>{area.topic}</strong><span>{area.subject} · {area.mistakeCount} wrong · priority {area.priority}/100</span></div><b>{area.accuracy}%</b></div>) : <p className="insight-empty">No weak topics detected yet.</p>}
             </div>
           </section>
-          <Link to="/recall" className="feature-primary-button">Start a recall session <ArrowRight size={16} /></Link>
+          <section className="insight-panel">
+            <div className="insight-panel-title"><Target size={19}/><h2>Recall risk & next best actions</h2></div>
+            {data.nextActions.length ? <div className="insight-review-list">{data.nextActions.map((item,index)=><article className="insight-review-item" key={`${item.subject}-${item.topic}-${index}`}><div className="insight-review-copy"><span className="feature-eyebrow">{item.subject} · priority indicator {item.riskScore}/100</span><h3>{item.topic||item.subject}</h3><p>{item.reason} · {item.daysSinceActivity} day(s) since last activity</p><p>{item.action}</p></div></article>)}</div> : <p className="insight-empty">Complete a few recall questions in each subject to build a useful topic history.</p>}
+            <p className="insight-note">{data.methodology}</p>
+          </section>
+          <div className="insight-recall-actions">
+            <Link to="/ai-tutor" state={{ mode: "recall-plan", context: aiContext }} className="feature-primary-button">Build my AI study plan <ArrowRight size={16}/></Link>
+            <Link to="/recall" className="feature-secondary-button">Start a recall session <ArrowRight size={16}/></Link>
+          </div>
         </>
       )}
     </PageShell>

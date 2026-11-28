@@ -34,26 +34,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Emit Prisma contract and plan learning-engine migrations
+      - name: Emit Prisma contract and plan fixed exam question sets
         env:
           DATABASE_URL: postgresql://local:local@localhost:5432/recalldose?sslmode=disable
         run: |
           npx prisma contract emit
-          existing_migration="$(find migrations/app -mindepth 1 -maxdepth 1 -type d -name '*_learning_engine_completion' | head -n 1)"
-          if [ -n "$existing_migration" ]; then
-            start_contract="$(node -e "const p=require('./'+process.argv[1]+'/migration.json'); console.log(p.from || '')" "$existing_migration")"
-            if [ "$start_contract" != "950f5b1bbd7028915d8c9772db39543764ee6b1be22ff835cf548c254f4fa7f6" ]; then
-              target_contract="$(node -e "const p=require('./'+process.argv[1]+'/migration.json'); console.log(p.to || '')" "$existing_migration")"
-              echo "Removing a learning-engine migration planned from a stale contract ref."
-              rm -rf "$existing_migration"
-              if [ -n "$target_contract" ]; then
-                rm -rf "migrations/snapshots/$target_contract"
-              fi
-              existing_migration=""
-            fi
-          fi
+          existing_migration="$(find migrations/app -mindepth 1 -maxdepth 1 -type d -name '*_fixed_exam_question_sets' | head -n 1)"
           if [ -z "$existing_migration" ]; then
-            npx prisma migration plan --from 20261122T1354_persist_study_content --name learning_engine_completion
+            npx prisma migration plan --from 20261128T1109_learning_engine_completion --name fixed_exam_question_sets
           fi
           npx prisma migration check
 

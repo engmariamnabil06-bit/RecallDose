@@ -58,29 +58,6 @@ function useTypewriterOnce(text: string, speed = 115) {
   return typed;
 }
 
-function useTypewriter(lines: string[], speed = 48, pause = 1900) {
-  const [lineIndex, setLineIndex] = useState(0);
-  const [text, setText] = useState("");
-  const [deleting, setDeleting] = useState(false);
-  useEffect(() => {
-    const current = lines[lineIndex % lines.length];
-    let delay = deleting ? 26 : speed;
-    if (!deleting && text === current) delay = pause;
-    else if (deleting && text === "") {
-      setDeleting(false);
-      setLineIndex((n) => (n + 1) % lines.length);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      if (!deleting && text === current) setDeleting(true);
-      else if (deleting) setText(current.slice(0, Math.max(0, text.length - 1)));
-      else setText(current.slice(0, text.length + 1));
-    }, delay);
-    return () => window.clearTimeout(timer);
-  }, [text, deleting, lineIndex, lines, speed, pause]);
-  return text;
-}
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -94,7 +71,7 @@ export default function Dashboard() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const greetingName = user?.firstName || "Future Doctor";
   const typedGreeting = useTypewriterOnce(`hey ${greetingName}`, 125);
-  const typedMotivation = useTypewriter(motivationalLines, 48, 2200);
+  const typedMotivation = useTypewriterOnce(motivationalLines[0], 48);
 
   useEffect(() => {
     let active = true;

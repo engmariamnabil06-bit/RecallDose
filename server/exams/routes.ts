@@ -11,8 +11,66 @@ const router = Router();
 function token(req: Request) { const p=req.headers.cookie?.split(";").find(x=>x.trim().startsWith("session=")); if(!p)return null; try{return decodeURIComponent(p.trim().slice(8));}catch{return null;} }
 async function userFor(req: Request) { const t=token(req); return t?getSessionUser(t):null; }
 function safeQuestion(q:any, opts:any[]) { return {id:q.id,text:q.text,type:q.type,difficulty:q.difficulty,subject:q.subject,topic:q.topic,options:opts.sort((a,b)=>a.optionOrder-b.optionOrder).map(o=>({id:o.id,text:o.text}))}; }
-router.get("/", async(req,res)=>{const user=await userFor(req);if(!user)return res.status(401).json({message:"Please sign in to view exams."});try{const exams=await db.orm.public.Exam.where({status:"PUBLISHED"}).all();return res.json({exams:exams.map((e:any)=>({id:e.id,title:e.title,description:e.description,subject:e.subject,topic:e.topic,durationMinutes:e.durationMinutes}))});}catch(e){console.error(e);return res.status(500).json({message:"Could not load exams."});}});
-router.post("/:examId/start",async(req,res)=>{const user=await userFor(req);if(!user)return res.status(401).json({message:"Please sign in to start an exam."});try{const exam=await db.orm.public.Exam.where({id:req.params.examId,status:"PUBLISHED"}).first();if(!exam)return res.status(404).json({message:"This exam is not available."});const active=await db.orm.public.ExamAttempt.where({examId:exam.id,userId:user.id,status:"IN_PROGRESS"}).first();if(active)return res.status(409).json({message:"You already have an active attempt. Finish it before starting another."});const all=await db.orm.public.Question.where({isActive:true}).all();const qs=all.filter((q:any)=>(!exam.subject||q.subject===exam.subject)&&(!exam.topic||q.topic===exam.topic)).sort(()=>Math.random()-.5).slice(0,20);if(!qs.length)return res.status(409).json({message:"No active questions match this exam yet. Add reviewed questions for this subject/topic first."});const now=Temporal.Now.instant();const attempt=await db.orm.public.ExamAttempt.create({examId:exam.id,userId:user.id,status:"IN_PROGRESS",totalQuestions:qs.length,correctAnswers:0,wrongAnswers:0,skippedAnswers:0,startedAt:now});await Promise.all(qs.map((q:any)=>db.orm.public.Answer.create({attemptId:attempt.id,questionId:q.id,selectedOptionId:null,isCorrect:null,answeredAt:now})));return res.status(201).json({attempt:{id:attempt.id,examId:exam.id,title:exam.title,durationMinutes:exam.durationMinutes,startedAt:attempt.startedAt,totalQuestions:qs.length,status:attempt.status},questions:await Promise.all(qs.map(async(q:any)=>safeQuestion(q,await db.orm.public.QuestionOption.where({questionId:q.id}).all())))});}catch(e){console.error("start exam",e);return res.status(500).json({message:"Could not start this exam."});}});
+router.get("/", async (req, res) => { const user = await userFor(req); if (!user) return res.status(401).json({ message: "Please sign in to view exams." }); try { const exams = await db.orm.public.Exam.where({ status: "PUBLISHED" }).all(); const visible = await Promise.all(exams.map(async (exam: any) => ({ id: exam.id, title: exam.title, description: exam.description, subject: exam.subject, topic: exam.topic, durationMinutes: exam.durationMinutes, questionCount: (await db.orm.public.ExamQuestion.where({ examId: exam.id }).all()).length }))); return res.json({ exams: visible }); } catch (error) { console.error("list published exams", error); return res.status(500).json({ message: "Could not load exams." }); } });
+router.post("/:examId/start", async (req, res) => {
+  const user = await userFor(req);
+  if (!user) return res.status(401).json({ message: "Please sign in to start an exam." });
+
+  try {
+    const exam = await db.orm.public.Exam.where({ id: req.params.examId, status: "PUBLISHED" }).first();
+    if (!exam) return res.status(404).json({ message: "This exam is not available." });
+
+    const active = await db.orm.public.ExamAttempt.where({
+      examId: exam.id, userId: user.id, status: "IN_PROGRESS",
+    }).first();
+    if (active) return res.status(409).json({ message: "You already have an active attempt. Finish it before starting another." });
+
+    const examQuestions = await db.orm.public.ExamQuestion.where({ examId: exam.id }).all();
+    if (!examQuestions.length) {
+      return res.status(409).json({ message: "This exam has no fixed question set yet. Ask an administrator to add approved questions in Exam Builder." });
+    }
+
+    const selected = await Promise.all(
+      examQuestions.sort((a: any, b: any) => a.questionOrder - b.questionOrder)
+        .map(async (item: any) => db.orm.public.Question.where({
+          id: item.questionId, isActive: true, reviewStatus: "APPROVED",
+        }).first())
+    );
+    if (selected.some((question) => !question)) {
+      return res.status(409).json({ message: "One or more questions in this exam are no longer approved or active. An administrator must update the exam set." });
+    }
+
+    // The same curated set is used for every attempt; only its display order is shuffled.
+    const questions = (selected as any[]).sort(() => Math.random() - 0.5);
+    const now = Temporal.Now.instant();
+    const attempt = await db.orm.public.ExamAttempt.create({
+      examId: exam.id, userId: user.id, status: "IN_PROGRESS",
+      totalQuestions: questions.length, correctAnswers: 0, wrongAnswers: 0,
+      skippedAnswers: 0, startedAt: now,
+    });
+
+    await Promise.all(questions.map((question: any) =>
+      db.orm.public.Answer.create({
+        attemptId: attempt.id, questionId: question.id,
+        selectedOptionId: null, isCorrect: null, answeredAt: now,
+      })
+    ));
+
+    return res.status(201).json({
+      attempt: {
+        id: attempt.id, examId: exam.id, title: exam.title,
+        durationMinutes: exam.durationMinutes, startedAt: attempt.startedAt,
+        totalQuestions: questions.length, status: attempt.status,
+      },
+      questions: await Promise.all(questions.map(async (question: any) =>
+        safeQuestion(question, await db.orm.public.QuestionOption.where({ questionId: question.id }).all())
+      )),
+    });
+  } catch (error) {
+    console.error("start fixed exam", error);
+    return res.status(500).json({ message: "Could not start this exam." });
+  }
+});
 router.get("/active", async (req, res) => {
   const user = await userFor(req);
   if (!user) return res.status(401).json({ message: "Please sign in to resume exams." });
