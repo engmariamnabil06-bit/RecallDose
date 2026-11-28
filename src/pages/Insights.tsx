@@ -548,6 +548,20 @@ export function ExamsPage() {
     return () => { active = false; };
   }, []);
   useEffect(() => {
+    let active = true;
+    fetch(apiUrl("/api/exams/history"), { credentials: "include" })
+      .then(async response => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.message || "Could not load exam analytics.");
+        if (active) {
+          setExamHistory(Array.isArray(payload.attempts) ? payload.attempts : []);
+          setExamAnalytics(payload.analytics || { totalExams: 0, averageScore: 0, bestScore: 0 });
+        }
+      })
+      .catch(cause => { if (active) setError(cause instanceof Error ? cause.message : "Could not load exam analytics."); });
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
     if (!startedAt || result) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
@@ -634,7 +648,7 @@ export function ExamsPage() {
         <h3>{item.text}</h3>
         <p><strong>Your answer:</strong> {item.selectedAnswer || "Skipped"}</p>
         <p><strong>Correct answer:</strong> {item.correctAnswer || "Not configured"}</p>
-        {item.explanation && <p className="insight-explanation">{item.explanation}</p>}
+        {item.explanation && <p className="insight-explanation">{item.explanation}</p>}<p className="insight-note">{item.reviewed && item.sourceReference ? "Source-linked and reviewed by RecallDose." : "Source review details are not available for this question."}{item.sourceTitle ? ` Source: ${item.sourceTitle}.` : ""}{item.sourceReference ? ` Reference: ${item.sourceReference}` : ""}</p>
         <Link to="/ai-tutor" className="feature-secondary-button" state={{mode:"subject-doctor",message:"Teach me this exam mistake step by step, then test me with a similar question.",context:[`Question: ${item.text}`,`My answer: ${item.selectedAnswer || "Skipped"}`,`Correct answer: ${item.correctAnswer || "Not available"}`,`Explanation: ${item.explanation || "No explanation supplied"}`,`Subject: ${item.subject || "Not specified"}`,`Topic: ${item.topic || "Not specified"}`].join("\\n")}}>Review with Dr. Subject <ArrowRight size={16}/></Link>
       </article>)}</div>}
       <button type="button" className="feature-primary-button" onClick={leaveExam}>Back to exam list <ArrowRight size={16} /></button><Link to="/mistakes" className="feature-secondary-button">Review mistake bank</Link></section>
