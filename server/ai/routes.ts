@@ -138,23 +138,17 @@ async function callProvider(provider: AIProvider, mode: AIMode, prompt: string, 
 async function generate(
   mode: AIMode,
   prompt: string,
-  context: string,
-  preferredProviderId = "auto"
-): Promise<{ answer: string; provider: string; providerId: string; model: string }> {
+  context: string
+): Promise<{ answer: string }> {
   const providers = configuredProviders();
   if (!providers.length) throw new Error("AI_NOT_CONFIGURED");
-  const preferred = preferredProviderId === "auto" ? null : providers.find((provider) => provider.id === preferredProviderId);
-  if (preferredProviderId !== "auto" && !preferred) throw new Error("AI_PROVIDER_UNAVAILABLE");
-  const ordered = preferred ? [preferred, ...providers.filter((provider) => provider.id !== preferred.id)] : providers;
-
   let lastError: unknown;
-  for (const provider of ordered) {
+  for (const provider of providers) {
     try {
-      const answer = await callProvider(provider, mode, prompt, context);
-      return { answer };
+      return { answer: await callProvider(provider, mode, prompt, context) };
     } catch (error) {
       lastError = error;
-      console.warn(`AI provider unavailable (${provider.name}); checking the next configured model.`);
+      console.warn(`AI provider unavailable (${provider.name}); silently trying the next configured provider.`);
     }
   }
   if (lastError instanceof Error && lastError.message === "AI_RATE_LIMITED") throw lastError;
@@ -163,14 +157,7 @@ async function generate(
 
 router.get("/status", (_req, res) => {
   const providers = configuredProviders();
-  res.json({
-    configured: providers.length > 0,
-    strategy: "user-choice-with-automatic-failover",
-    providers: providers.map((provider, index) => ({
-      id: provider.id, name: provider.name, model: provider.model, fallbackOrder: index + 1,
-    })),
-    modes: supportedModes,
-  });
+  res.json({ configured: providers.length > 0, strategy: "silent-server-side-automatic-failover", providerCount: providers.length, modes: supportedModes });
 });
 
 router.post("/chat", async (req, res) => {
@@ -182,19 +169,17 @@ router.post("/chat", async (req, res) => {
   const prompt = cleanText(req.body?.message, 4000);
   const context = cleanText(req.body?.context, 10000);
   const mode = supportedModes.includes(req.body?.mode) ? req.body.mode as AIMode : "tutor";
-  const preferredProviderId = typeof req.body?.providerId === "string" ? req.body.providerId : "auto";
   if (prompt.length < 2) return res.status(400).json({ message: "Enter a question or concept to work on." });
 
   try {
-    const result = await generate(mode, prompt, context, preferredProviderId);
+    const result = await generate(mode, prompt, context);
     return res.json({
-      answer: result.answer, mode, provider: result.provider, providerId: result.providerId, model: result.model,
+      answer: result.answer, mode,
       disclaimer: "For learning only. Verify medical facts with trusted course references; not for patient care.",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI_PROVIDER_ERROR";
     if (message === "AI_NOT_CONFIGURED") return res.status(503).json({ message: "AI is not configured yet. Add a server-side AI_API_KEY or fallback key; never add keys to VITE_ variables." });
-    if (message === "AI_PROVIDER_UNAVAILABLE") return res.status(400).json({ message: "That AI model is not configured. Refresh the model list and choose an available provider." });
     if (message === "AI_RATE_LIMITED") return res.status(429).json({ message: "All configured AI providers are temporarily rate-limiting requests. Try again shortly." });
     console.error("AI generation error:", message);
     return res.status(502).json({ message: "The AI service did not respond successfully. Please try again shortly." });
