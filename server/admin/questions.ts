@@ -56,6 +56,7 @@ router.post("/", async (req, res) => {
   const sourceTitle = typeof req.body.sourceTitle === "string" ? req.body.sourceTitle.trim().slice(0, 240) : "";
   const sourceReference = typeof req.body.sourceReference === "string" ? req.body.sourceReference.trim().slice(0, 1000) : "";
   const sourcePage = typeof req.body.sourcePage === "string" ? req.body.sourcePage.trim().slice(0, 80) : "";
+  if (!sourceTitle || !sourceReference) return res.status(400).json({ message: "A source title and source reference are required to add a draft." });
   try {
     const question = await db.orm.public.Question.create({
       text: req.body.text.trim(),

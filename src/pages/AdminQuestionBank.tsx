@@ -120,10 +120,10 @@ export default function AdminQuestionBank() {
             <fieldset className="aq-options"><legend>Answer options · choose exactly one correct answer</legend>{options.map((option, index) => <div className="aq-option" key={index}><input aria-label={`Option ${index + 1}`} required maxLength={1200} value={option} onChange={(event) => setOptions((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}/><label><input type="radio" name="correct-option" checked={correctIndex === index} onChange={() => setCorrectIndex(index)}/> Correct</label></div>)}</fieldset>
             <label>Explanation<textarea required minLength={10} maxLength={6000} value={explanation} onChange={(event) => setExplanation(event.target.value)} rows={3} placeholder="Explain why the correct answer is right and what the learner should understand…"/></label>
             <div className="aq-grid aq-source-grid">
-              <label>Source title<input maxLength={240} value={sourceTitle} onChange={(event) => setSourceTitle(event.target.value)} placeholder="Textbook, guideline, lecture…"/></label>
+              <label>Source title<input required maxLength={240} value={sourceTitle} onChange={(event) => setSourceTitle(event.target.value)} placeholder="Textbook, guideline, lecture…"/></label>
               <label>Source page / section<input maxLength={80} value={sourcePage} onChange={(event) => setSourcePage(event.target.value)} placeholder="Page, chapter or section"/></label>
             </div>
-            <label>Source reference<input maxLength={1000} value={sourceReference} onChange={(event) => setSourceReference(event.target.value)} placeholder="ISBN, DOI, stable URL or institutional reference"/></label>
+            <label>Source reference<input required maxLength={1000} value={sourceReference} onChange={(event) => setSourceReference(event.target.value)} placeholder="ISBN, DOI, stable URL or institutional reference"/></label>
             <button className="aq-primary" type="submit" disabled={busy}>{busy ? "Saving…" : "Save as unpublished draft"}</button>
           </form>
         </section>
