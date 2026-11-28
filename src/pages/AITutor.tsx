@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent, type LucideIcon } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Activity, ArrowLeft, Atom, BookMarked, BookOpen, Brain, ClipboardList, Languages, MessageSquareText, Pill, Send, Sparkles, Stethoscope, Target, WandSparkles } from "lucide-react";
+import { Activity, ArrowLeft, Atom, BookMarked, BookOpen, Brain, ClipboardList, Languages, MessageSquareText, Pill, Send, Sparkles, Stethoscope, Target, WandSparkles, type LucideIcon } from "lucide-react";
 import { apiUrl } from "../lib/api";
 import "./ai-tutor.css";
 
