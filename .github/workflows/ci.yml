@@ -65,3 +65,14 @@ jobs:
 
       - name: Typecheck server
         run: npm run typecheck:server
+
+      - name: Package verified source archive
+        run: git archive --format=zip --prefix=RecallDose/ HEAD -o RecallDose-source.zip
+
+      - name: Upload source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: recalldose-source
+          path: RecallDose-source.zip
+          if-no-files-found: error
+          retention-days: 7
